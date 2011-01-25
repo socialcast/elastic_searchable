@@ -4,6 +4,8 @@ module ElasticSearchable
       def create_index
         self.delete_index
         ElasticSearchable.searcher.create_index(index_name, @index_options)
+        ElasticSearchable.searcher.update_mapping(@mapping, self.elastic_search_options) if @mapping
+
         self.find_each do |record|
           record.local_index_in_elastic_search
         end
