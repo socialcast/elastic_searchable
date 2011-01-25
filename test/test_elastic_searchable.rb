@@ -23,4 +23,24 @@ class TestElasticSearchable < Test::Unit::TestCase
       assert_equal 'test_elastic_searchable-post', @clazz.index_name
     end
   end
+
+  context 'creating new instance' do
+    setup do
+      Post.delete_index
+      @post = Post.create :title => 'foo', :body => "bar"
+      Post.create_index
+      Post.refresh_index
+    end
+    context 'searching for results' do
+      setup do
+        @results = Post.search 'foo'
+      end
+      should 'find created object' do
+        assert_equal @post, @results.first
+      end
+      should 'be paginated' do
+        assert_equal 1, @results.total_entries
+      end
+    end
+  end
 end
