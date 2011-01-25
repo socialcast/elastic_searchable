@@ -60,7 +60,6 @@ module ElasticSearchable
       out
     end
 
-    protected
     def elastic_search_options(options = {})
       options.merge(:index => self.index_name, :type => self.elastic_search_type)
     end

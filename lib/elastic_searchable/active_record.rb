@@ -44,11 +44,9 @@ module ElasticSearchable
         self.to_json
       end
       def local_index_in_elastic_search(options = {})
-        options[:index] ||= self.class.index_name
-        options[:type]  ||= self.class.elastic_search_type
         options[:id]    ||= self.id.to_s
         document = self.indexed_json_document
-        ElasticSearchable.searcher.index document, options
+        ElasticSearchable.searcher.index document, self.class.elastic_search_options(options)
 
         self.run_callbacks("after_index_on_#{options[:lifecycle]}".to_sym) if options[:lifecycle]
         self.run_callbacks(:after_index)
