@@ -15,9 +15,9 @@ Jeweler::Tasks.new do |gem|
   gem.name = "elastic_searchable"
   gem.homepage = "http://github.com/wireframe/elastic_searchable"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
-  gem.email = "ryan@socialcast.com"
+  gem.summary = %Q{elastic search for activerecord}
+  gem.description = %Q{integrate the elastic search engine with rails}
+  gem.email = "ryan@codecrate.com"
   gem.authors = ["Ryan Sonnek"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
