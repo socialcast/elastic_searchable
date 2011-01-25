@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "elastic_searchable.gemspec",
     "lib/elastic_searchable.rb",
     "lib/elastic_searchable/active_record.rb",
     "lib/elastic_searchable/callbacks.rb",
