@@ -26,10 +26,8 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'creating new instance' do
     setup do
-      Post.delete_index
       @post = Post.create :title => 'foo', :body => "bar"
       Post.create_index
-      Post.refresh_index
     end
     context 'searching for results' do
       setup do

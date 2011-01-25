@@ -3,6 +3,7 @@ require 'after_commit'
 require 'backgrounded'
 require 'elastic_searchable/queries'
 require 'elastic_searchable/callbacks'
+require 'elastic_searchable/index'
 
 module ElasticSearchable
   module ActiveRecord
@@ -35,63 +36,11 @@ module ElasticSearchable
         @index_options = options[:index_options] || {}
         @mapping = options[:mapping] || false
 
-        include ElasticSearchable::Queries
+        extend ElasticSearchable::ActiveRecord::Index
+        extend ElasticSearchable::Queries
+
         include ElasticSearchable::Callbacks
         include ElasticSearchable::ActiveRecord::InstanceMethods
-      end
-
-      def create_index
-        index_version = self.create_index_version
-
-        self.find_in_batches do |batch|
-          batch.each do |record|
-            record.local_index_in_elastic_search(:index => index_version)
-          end
-        end
-
-        ElasticSearchable.searcher.deploy_index_version(self.index_name, index_version)
-      end
-    
-      # explicitly refresh the index, making all operations performed since the last refresh
-      # available for search
-      #
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/refresh/
-      def refresh_index(index_version = nil)
-        ElasticSearchable.searcher.refresh(index_version || index_name)
-      end
-      
-      # creates a new index version for this model and sets the mapping options for the type
-      def create_index_version
-        index_version = ElasticSearchable.searcher.create_index_version(@index_name, @index_options)
-        if @mapping
-          ElasticSearchable.searcher.update_mapping(@mapping, :index => index_version, :type => elastic_search_type)
-        end
-        index_version
-      end
-
-      # deletes all index versions for this model
-      def delete_index
-        # deletes any index version
-        ElasticSearchable.searcher.index_versions(index_name).each{|index_version|
-          ElasticSearchable.searcher.delete_index(index_version)
-        }
-        
-        # and delete the index itself if it exists
-        begin
-          ElasticSearchable.searcher.delete_index(index_name)
-        rescue ElasticSearch::RequestError
-          # it's ok, this means that the index doesn't exist
-        end
-      end
-      
-      def delete_id_from_index(id, options = {})
-        options[:index] ||= self.index_name
-        options[:type]  ||= elastic_search_type
-        ElasticSearchable.searcher.delete(id.to_s, options)
-      end
-      
-      def optimize_index
-        ElasticSearchable.searcher.optimize(index_name)
       end
     end
 
