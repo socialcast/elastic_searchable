@@ -54,9 +54,8 @@ module ElasticSearchable
       # record that has been deleted on the database
       def search(query, options = {})
         hits = search_hits(query, options)
-        hits_ar = hits.map{|hit| hit.to_activerecord}
         results = WillPaginate::Collection.new(hits.current_page, hits.per_page, hits.total_entries)
-        results.replace(hits_ar)
+        results.replace hits.collect(&:to_activerecord)
         results
       end
 

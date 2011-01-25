@@ -19,5 +19,8 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'respond to :search' do
       assert @clazz.respond_to?(:search)
     end
+    should 'define index_name' do
+      assert_equal 'test_elastic_searchable-post', @clazz.index_name
+    end
   end
 end
