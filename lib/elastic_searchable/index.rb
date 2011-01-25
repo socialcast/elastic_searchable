@@ -27,15 +27,16 @@ module ElasticSearchable
         end
       end
 
+      #optimize the index
+      def optimize_index
+        ElasticSearchable.searcher.optimize index_name
+      end
+
       #delete one record from the index
       def delete_id_from_index(id, options = {})
         options[:index] ||= self.index_name
         options[:type]  ||= elastic_search_type
         ElasticSearchable.searcher.delete(id.to_s, options)
-      end
-
-      def optimize_index
-        ElasticSearchable.searcher.optimize index_name
       end
     end
   end

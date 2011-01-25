@@ -37,8 +37,9 @@ module ElasticSearchable
     end
 
     module InstanceMethods
-      # default implementation of document to index
-      # implementations can override this method to index custom document
+      # build json document to index in elasticsearch
+      # default implementation simply calls to_json
+      # implementations can override this method to index custom content
       def indexed_json_document
         self.to_json
       end
