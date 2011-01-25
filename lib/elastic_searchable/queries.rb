@@ -8,7 +8,7 @@ module ElasticSearchable
       if query.kind_of?(Hash)
         query = {:query => query}
       end
-      ElasticSearchable.searcher.search(query, options.merge({:index => self.index_name, :type => elastic_search_type}))
+      ElasticSearchable.searcher.search query, elastic_search_options(options)
     end
 
     # search returns a will_paginate collection of ActiveRecord objects for the search results
@@ -29,7 +29,7 @@ module ElasticSearchable
       if query.kind_of?(Hash)
         query = {:query => query}
       end
-      ElasticSearchable.searcher.count(query, options.merge({:index => self.index_name, :type => elastic_search_type}))
+      ElasticSearchable.searcher.count query, elastic_search_options(options)
     end
 
     def facets(fields_list, options = {})
@@ -47,7 +47,7 @@ module ElasticSearchable
         options[:facets][field] = {:terms => {:field => field, :size => size}}
       end
 
-      hits = ElasticSearchable.searcher.search(options, {:index => self.index_name, :type => elastic_search_type})
+      hits = ElasticSearchable.searcher.search options, elastic_search_options
       out = {}
       
       fields_list.each do |field|
@@ -58,6 +58,11 @@ module ElasticSearchable
       end
 
       out
+    end
+
+    protected
+    def elastic_search_options(options = {})
+      options.merge(:index => self.index_name, :type => self.elastic_search_type)
     end
   end
 end
