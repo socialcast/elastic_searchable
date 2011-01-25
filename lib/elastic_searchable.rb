@@ -1,6 +1,7 @@
 require 'rubberband'
 require 'elastic_searchable/active_record'
-require 'elastic_searchable/elastic_search_extensions'
+require 'elastic_searchable/versioned_admin_index'
+require 'elastic_searchable/hit_finder'
 
 module ElasticSearchable
   class << self
@@ -14,11 +15,9 @@ end
 ActiveRecord::Base.class_eval do
   include ElasticSearchable::ActiveRecord
 end
-
 ElasticSearch::Api::Hit.class_eval do
-  include ElasticSearchable::HitExtensions
+  include ElasticSearchable::HitFinder
 end
-
 ElasticSearch::Client.class_eval do
-  include ElasticSearchable::AdminIndexVersions
+  include ElasticSearchable::VersionedAdminIndex
 end

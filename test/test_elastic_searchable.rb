@@ -12,12 +12,12 @@ class TestElasticSearchable < Test::Unit::TestCase
     elastic_searchable
   end
 
-  context 'a new Post instance' do
+  context 'Post class with default elastic_searchable config' do
     setup do
-      @post = Post.new 
+      @clazz = Post
     end
     should 'respond to :search' do
-      assert @post.respond_to?(:search)
+      assert @clazz.respond_to?(:search)
     end
   end
 end

@@ -1,5 +1,6 @@
 module ElasticSearchable
   module VersionedAdminIndex
+
     # creates an index to store a new index version. Returns its name
     def create_index_version(index, create_options)
       index_with_timestamp = "#{index}_#{Time.now.to_f}"

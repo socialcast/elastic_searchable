@@ -1,7 +1,7 @@
 require 'will_paginate/collection'
 require 'active_record'
-require 'backgrounded'
 require 'after_commit'
+require 'backgrounded'
 
 module ElasticSearchable
   module ActiveRecord
@@ -34,7 +34,7 @@ module ElasticSearchable
         @index_options = options[:index_options] || {}
         @mapping = options[:mapping] || false
 
-        include ElasticSearchable::ActiveRecordExtensions::InstanceMethods
+        include ElasticSearchable::ActiveRecord::InstanceMethods
       end
 
       # search_hits returns a raw ElasticSearch::Api::Hits object for the search results
