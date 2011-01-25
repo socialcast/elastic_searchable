@@ -24,6 +24,16 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'Post.create_index' do
+    setup do
+      Post.create_index
+      @status = ElasticSearchable.searcher.index_status Post.index_name
+    end
+    should 'have created index' do
+      assert @status['ok']
+    end
+  end
+
   context 'creating new instance' do
     setup do
       Post.delete_all
