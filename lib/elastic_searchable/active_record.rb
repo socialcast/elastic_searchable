@@ -23,24 +23,16 @@ module ElasticSearchable
         @index_name = options[:index_name] || self.name.underscore.gsub(/\//,'-')
         @elastic_search_type = options[:elastic_search_type] || self.name.underscore.singularize.gsub(/\//,'-')
 
-        backgrounded :update_index_on_create => {:queue => 'searchindex'}, :update_index_on_update => {:queue => 'searchindex'}
-        class << self
-          backgrounded :delete_id_from_index => {:queue => 'searchindex'}
-        end
-
-        define_callbacks :after_index_on_create, :after_index_on_update, :after_index
-        after_commit_on_create :update_index_on_create_backgrounded
-        after_commit_on_update :update_index_on_update_backgrounded
-        after_commit_on_destroy Proc.new {|o| o.class.delete_id_from_index_backgrounded(o.id) }
-
         @index_options = options[:index_options] || {}
         @mapping = options[:mapping] || false
 
         extend ElasticSearchable::ActiveRecord::Index
         extend ElasticSearchable::Queries
 
-        include ElasticSearchable::Callbacks
         include ElasticSearchable::ActiveRecord::InstanceMethods
+        include ElasticSearchable::Callbacks
+
+        add_indexing_callbacks
       end
     end
 
