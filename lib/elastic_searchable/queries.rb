@@ -2,15 +2,6 @@ require 'will_paginate/collection'
 
 module ElasticSearchable
   module Queries
-    # search_hits returns a raw ElasticSearch::Api::Hits object for the search results
-    # see #search for the valid options
-    def search_hits(query, options = {})
-      if query.kind_of?(Hash)
-        query = {:query => query}
-      end
-      ElasticSearchable.searcher.search query, elastic_search_options(options)
-    end
-
     # search returns a will_paginate collection of ActiveRecord objects for the search results
     #
     # see ElasticSearch::Api::Index#search for the full list of valid options
@@ -18,7 +9,12 @@ module ElasticSearchable
     # note that the collection may include nils if ElasticSearch returns a result hit for a
     # record that has been deleted on the database
     def search(query, options = {})
-      hits = search_hits(query, options)
+      options[:fields] ||= '_id'
+      if query.kind_of?(Hash)
+        query = {:query => query}
+      end
+      hits = ElasticSearchable.searcher.search query, elastic_search_options(options)
+
       results = WillPaginate::Collection.new(hits.current_page, hits.per_page, hits.total_entries)
       results.replace self.find(hits.collect(&:_id))
       results
