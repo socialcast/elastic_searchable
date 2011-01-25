@@ -1,3 +1,5 @@
+require 'will_paginate/collection'
+
 module ElasticSearchable
   module Queries
     # search_hits returns a raw ElasticSearch::Api::Hits object for the search results
@@ -18,7 +20,7 @@ module ElasticSearchable
     def search(query, options = {})
       hits = search_hits(query, options)
       results = WillPaginate::Collection.new(hits.current_page, hits.per_page, hits.total_entries)
-      results.replace hits.collect(&:to_activerecord)
+      results.replace self.find(hits.collect(&:_id))
       results
     end
 

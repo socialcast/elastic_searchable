@@ -1,8 +1,8 @@
-require 'will_paginate/collection'
 require 'active_record'
 require 'after_commit'
 require 'backgrounded'
 require 'elastic_searchable/queries'
+require 'elastic_searchable/callbacks'
 
 module ElasticSearchable
   module ActiveRecord
@@ -36,6 +36,7 @@ module ElasticSearchable
         @mapping = options[:mapping] || false
 
         include ElasticSearchable::Queries
+        include ElasticSearchable::Callbacks
         include ElasticSearchable::ActiveRecord::InstanceMethods
       end
 
@@ -99,12 +100,6 @@ module ElasticSearchable
       # implementations can override this method to index custom document
       def indexed_json_document
         self.to_json
-      end
-      def update_index_on_create
-        local_index_in_elastic_search :lifecycle => :create
-      end
-      def update_index_on_update
-        local_index_in_elastic_search :lifecycle => :update
       end
       def local_index_in_elastic_search(options = {})
         options[:index] ||= self.class.index_name
