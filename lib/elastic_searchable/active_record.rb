@@ -4,7 +4,7 @@ require 'backgrounded'
 require 'after_commit'
 
 module ElasticSearchable
-  module ActiveRecordExtensions
+  module ActiveRecord
     def self.included(base)
       base.send :extend, ClassMethods
     end

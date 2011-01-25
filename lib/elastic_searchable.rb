@@ -1,5 +1,5 @@
 require 'rubberband'
-require 'elastic_searchable/active_record_extensions'
+require 'elastic_searchable/active_record'
 require 'elastic_searchable/elastic_search_extensions'
 
 module ElasticSearchable
@@ -12,7 +12,7 @@ module ElasticSearchable
 end
 
 ActiveRecord::Base.class_eval do
-  include ElasticSearchable::ActiveRecordExtensions
+  include ElasticSearchable::ActiveRecord
 end
 
 ElasticSearch::Api::Hit.class_eval do

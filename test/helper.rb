@@ -15,7 +15,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'elastic_searchable'
 
 config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
-puts config.inspect
 ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
 ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'sqlite'])
 
