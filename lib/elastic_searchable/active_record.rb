@@ -51,24 +51,23 @@ module ElasticSearchable
         self.run_callbacks(:after_index)
       end
       def should_index?
-        [self.class.elastic_options[:if]].flatten.compact.all? { |a| evaluate_method(a, *args) } &&
-        ![self.class.elastic_options[:unless]].flatten.compact.any? { |a| evaluate_method(a, *args) }
+        [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_condition(m) } &&
+        ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_condition(m) }
       end
 
       private
       #ripped from activesupport
-      def evaluate_method(method, *args, &block)
+      def evaluate_condition(method)
         case method
           when Symbol
-            object = args.shift
-            object.send(method, *args, &block)
+            self.send method
           when String
-            eval(method, args.first.instance_eval { binding })
+            eval(method, self.instance_eval { binding })
           when Proc, Method
-            method.call(*args, &block)
+            method.call
           else
             if method.respond_to?(kind)
-              method.send(kind, *args, &block)
+              method.send kind
             else
               raise ArgumentError,
                 "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
