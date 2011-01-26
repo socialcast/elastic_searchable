@@ -50,7 +50,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       assert @clazz.elastic_options
     end
     should 'define index_name' do
-      assert_equal 'test_elastic_searchable-post', @clazz.index_name
+      assert_equal 'posts', @clazz.index_name
     end
   end
 
@@ -120,8 +120,8 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'have set mapping' do
         expected = {
-          "test_elastic_searchable-user"=> {
-            "test_elastic_searchable-user"=> {
+          "users"=> {
+            "users"=> {
               "properties"=> {
                 "name"=> {"type"=>"string", "index"=>"not_analyzed"}
               }

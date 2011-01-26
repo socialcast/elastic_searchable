@@ -20,8 +20,8 @@ module ElasticSearchable
       # :unless
       def elastic_searchable(options = {})
         options.symbolize_keys!
-        options[:index] ||= self.name.underscore.gsub(/\//,'-')
-        options[:type] ||= self.name.underscore.singularize.gsub(/\//,'-')
+        options[:index] ||= self.table_name
+        options[:type] ||= self.table_name
         options[:index_options] ||= {}
         options[:mapping] ||= false
         self.elastic_options = options
