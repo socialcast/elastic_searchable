@@ -6,6 +6,11 @@ class TestElasticSearchable < Test::Unit::TestCase
       t.column :title, :string
       t.column :body, :string
     end
+
+    create_table :blogs, :force => true do |t|
+      t.column :title, :string
+      t.column :body, :string
+    end
   end
 
   class Post < ActiveRecord::Base
@@ -49,6 +54,32 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'be paginated' do
         assert_equal 1, @results.total_entries
+      end
+    end
+  end
+
+  class Blog < ActiveRecord::Base
+    elastic_searchable :if => proc {|b| b.should_index? }
+    def should_index?
+      false
+    end
+  end
+  context 'activerecord class with :if=>proc' do
+    context 'when creating new instance' do
+      setup do
+        Blog.any_instance.expects(:index_in_elastic_search).never
+        Blog.delete_all
+        Blog.create_index
+        Blog.create! :title => 'foo'
+      end
+      should 'not index record' do end #see expectations
+
+      context 'recreating new index' do
+        setup do
+          Blog.any_instance.expects(:index_in_elastic_search).never
+          Blog.create_index
+        end
+        should 'not index record' do end #see expectations
       end
     end
   end

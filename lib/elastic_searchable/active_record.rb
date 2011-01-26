@@ -14,12 +14,16 @@ module ElasticSearchable
     module ClassMethods
       attr_accessor :index_name
       attr_accessor :elastic_search_type
+      attr_accessor :elastic_options
 
       # Valid options:
       # :index_name (will default class name using method "underscore")
+      # :if
+      # :unless
       def elastic_searchable(options = {})
         options.symbolize_keys!
-        
+
+        self.elastic_options = options
         @index_name = options[:index_name] || self.name.underscore.gsub(/\//,'-')
         @elastic_search_type = options[:elastic_search_type] || self.name.underscore.singularize.gsub(/\//,'-')
 
@@ -43,7 +47,7 @@ module ElasticSearchable
       def indexed_json_document
         self.to_json
       end
-      def local_index_in_elastic_search(options = {})
+      def index_in_elastic_search(options = {})
         options[:id]    ||= self.id.to_s
         document = self.indexed_json_document
         ElasticSearchable.searcher.index document, self.class.elastic_search_options(options)

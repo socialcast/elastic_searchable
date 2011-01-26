@@ -7,7 +7,7 @@ module ElasticSearchable
         ElasticSearchable.searcher.update_mapping(@mapping, self.elastic_search_options) if @mapping
 
         self.find_each do |record|
-          record.local_index_in_elastic_search
+          record.run_callbacks :after_commit_on_update
         end
         self.refresh_index
       end
