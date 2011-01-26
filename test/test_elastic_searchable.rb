@@ -1,5 +1,24 @@
 require File.join(File.dirname(__FILE__), 'helper')
 
+module ElasticSearch
+  class Client
+    def index_mapping(*args)
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      indices = args.empty? ? [(default_index || :all)] : args.flatten
+      indices.collect! { |i| [:all].include?(i) ? "_#{i}" : i }
+      execute(:index_mapping, indices, options)
+    end
+  end
+  module Transport
+    class HTTP
+      def index_mapping(index_list, options={})
+        standard_request(:get, {:index => index_list, :op => "_mapping"})
+      end
+    end
+  end
+end
+
+
 class TestElasticSearchable < Test::Unit::TestCase
   ActiveRecord::Schema.define(:version => 1) do
     create_table :posts, :force => true do |t|
@@ -10,6 +29,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     create_table :blogs, :force => true do |t|
       t.column :title, :string
       t.column :body, :string
+    end
+    create_table :users, :force => true do |t|
+      t.column :name, :string
     end
   end
 
@@ -23,6 +45,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     should 'respond to :search' do
       assert @clazz.respond_to?(:search)
+    end
+    should 'define elastic_options' do
+      assert @clazz.elastic_options
     end
     should 'define index_name' do
       assert_equal 'test_elastic_searchable-post', @clazz.index_name
@@ -80,6 +105,30 @@ class TestElasticSearchable < Test::Unit::TestCase
           Blog.create_index
         end
         should 'not index record' do end #see expectations
+      end
+    end
+  end
+
+  class User < ActiveRecord::Base
+    elastic_searchable :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
+  end
+  context 'activerecord class with :mapping=>{}' do
+    context 'creating index' do
+      setup do
+        User.create_index
+        @status = ElasticSearchable.searcher.index_mapping User.index_name
+      end
+      should 'have set mapping' do
+        expected = {
+          "test_elastic_searchable-user"=> {
+            "test_elastic_searchable-user"=> {
+              "properties"=> {
+                "name"=> {"type"=>"string", "index"=>"not_analyzed"}
+              }
+            }
+          }
+        }
+        assert_equal expected, @status
       end
     end
   end
