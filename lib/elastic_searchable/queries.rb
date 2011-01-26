@@ -13,7 +13,7 @@ module ElasticSearchable
       if query.kind_of?(Hash)
         query = {:query => query}
       end
-      hits = ElasticSearchable.searcher.search query, elastic_search_options(options)
+      hits = ElasticSearchable.searcher.search query, index_options.merge(options)
 
       results = WillPaginate::Collection.new(hits.current_page, hits.per_page, hits.total_entries)
       results.replace self.find(hits.collect(&:_id))
@@ -25,7 +25,7 @@ module ElasticSearchable
       if query.kind_of?(Hash)
         query = {:query => query}
       end
-      ElasticSearchable.searcher.count query, elastic_search_options(options)
+      ElasticSearchable.searcher.count query, index_options.merge(options)
     end
 
     def facets(fields_list, options = {})
@@ -43,7 +43,7 @@ module ElasticSearchable
         options[:facets][field] = {:terms => {:field => field, :size => size}}
       end
 
-      hits = ElasticSearchable.searcher.search options, elastic_search_options
+      hits = ElasticSearchable.searcher.search options, index_options.merge(options)
       out = {}
       
       fields_list.each do |field|
@@ -54,10 +54,6 @@ module ElasticSearchable
       end
 
       out
-    end
-
-    def elastic_search_options(options = {})
-      options.merge(:index => self.index_name, :type => self.elastic_search_type)
     end
   end
 end

@@ -20,10 +20,10 @@ module ElasticSearchable
     end
 
     def update_index_on_create
-      index_in_elastic_search :lifecycle => :create
+      index_in_elastic_search :create
     end
     def update_index_on_update
-      index_in_elastic_search :lifecycle => :update
+      index_in_elastic_search :update
     end
   end
 end
