@@ -15,9 +15,12 @@ module ElasticSearchable
       attr_accessor :elastic_options
 
       # Valid options:
-      # :index_name (will default class name using method "underscore")
-      # :if
-      # :unless
+      # :index (optional) configure index to store data in.  default to model table name
+      # :type (optional) configue type to store data in.  default to model table name
+      # :index_options (optional) configure index properties (ex: tokenizer)
+      # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
+      # :if (optional) reference symbol/proc condition to only index when condition is true 
+      # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
       def elastic_searchable(options = {})
         options.symbolize_keys!
         options[:index] ||= self.table_name
