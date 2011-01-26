@@ -50,6 +50,32 @@ module ElasticSearchable
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
       end
+      def should_index?
+        [self.class.elastic_options[:if]].flatten.compact.all? { |a| evaluate_method(a, *args) } &&
+        ![self.class.elastic_options[:unless]].flatten.compact.any? { |a| evaluate_method(a, *args) }
+      end
+
+      private
+      #ripped from activesupport
+      def evaluate_method(method, *args, &block)
+        case method
+          when Symbol
+            object = args.shift
+            object.send(method, *args, &block)
+          when String
+            eval(method, args.first.instance_eval { binding })
+          when Proc, Method
+            method.call(*args, &block)
+          else
+            if method.respond_to?(kind)
+              method.send(kind, *args, &block)
+            else
+              raise ArgumentError,
+                "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
+                "a block to be invoked, or an object responding to the callback method."
+            end
+        end
+      end
     end
   end
 end

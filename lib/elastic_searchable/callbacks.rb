@@ -11,10 +11,9 @@ module ElasticSearchable
           backgrounded :delete_id_from_index => {:queue => 'searchindex'}
         end
 
-        callback_options = self.elastic_options.slice :if, :unless
         define_callbacks :after_index_on_create, :after_index_on_update, :after_index
-        after_commit_on_create :update_index_on_create_backgrounded, callback_options
-        after_commit_on_update :update_index_on_update_backgrounded, callback_options
+        after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?
+        after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?
         after_commit_on_destroy Proc.new {|o| o.class.delete_id_from_index_backgrounded(o.id) }
       end
     end

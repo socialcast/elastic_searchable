@@ -9,7 +9,7 @@ module ElasticSearchable
         end
 
         self.find_each do |record|
-          record.run_callbacks :after_commit_on_update
+          record.index_in_elastic_search if record.should_index?
         end
         self.refresh_index
       end
