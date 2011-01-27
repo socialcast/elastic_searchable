@@ -25,13 +25,16 @@ class TestElasticSearchable < Test::Unit::TestCase
       t.column :title, :string
       t.column :body, :string
     end
-
     create_table :blogs, :force => true do |t|
       t.column :title, :string
       t.column :body, :string
     end
     create_table :users, :force => true do |t|
       t.column :name, :string
+    end
+    create_table :friends, :force => true do |t|
+      t.column :name, :string
+      t.column :favorite_color, :string
     end
   end
 
@@ -129,6 +132,25 @@ class TestElasticSearchable < Test::Unit::TestCase
           }
         }
         assert_equal expected, @status
+      end
+    end
+  end
+
+  class Friend < ActiveRecord::Base
+    elastic_searchable :json => {:only => [:name]}
+  end
+  context 'activerecord class with :json=>{}' do
+    context 'creating index' do
+      setup do
+        Friend.delete_all
+        @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
+        Friend.create_index
+      end
+      should 'index json with configuration' do
+        @response = ElasticSearchable.searcher.get @friend.id, Friend.index_options
+        puts @response.inspect
+        expectation = {}
+        assert_equal expectation, @response
       end
     end
   end
