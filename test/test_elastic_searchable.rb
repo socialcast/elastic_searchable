@@ -25,7 +25,6 @@ class TestElasticSearchable < Test::Unit::TestCase
       t.column :title, :string
       t.column :body, :string
     end
-
     create_table :blogs, :force => true do |t|
       t.column :title, :string
       t.column :body, :string
@@ -33,10 +32,28 @@ class TestElasticSearchable < Test::Unit::TestCase
     create_table :users, :force => true do |t|
       t.column :name, :string
     end
+    create_table :friends, :force => true do |t|
+      t.column :name, :string
+      t.column :favorite_color, :string
+    end
   end
 
   class Post < ActiveRecord::Base
     elastic_searchable
+    after_index :indexed
+    after_index_on_create :indexed_on_create
+    def indexed
+      @indexed = true
+    end
+    def indexed?
+      @indexed
+    end
+    def indexed_on_create
+      @indexed_on_create = true
+    end
+    def indexed_on_create?
+      @indexed_on_create
+    end
   end
 
   context 'Post class with default elastic_searchable config' do
@@ -70,6 +87,13 @@ class TestElasticSearchable < Test::Unit::TestCase
       @post = Post.create :title => 'foo', :body => "bar"
       Post.create_index
     end
+    should 'have fired after_index callback' do
+      assert @post.indexed?
+    end
+    should 'have fired after_index_on_create callback' do
+      assert @post.indexed_on_create?
+    end
+
     context 'searching for results' do
       setup do
         @results = Post.search 'foo'
@@ -129,6 +153,24 @@ class TestElasticSearchable < Test::Unit::TestCase
           }
         }
         assert_equal expected, @status
+      end
+    end
+  end
+
+  class Friend < ActiveRecord::Base
+    elastic_searchable :json => {:only => [:name]}
+  end
+  context 'activerecord class with :json=>{}' do
+    context 'creating index' do
+      setup do
+        Friend.delete_all
+        @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
+        Friend.create_index
+      end
+      should 'index json with configuration' do
+        @response = ElasticSearchable.searcher.get @friend.id, Friend.index_options
+        assert_equal 'bob', @response.name
+        assert_nil @response.favorite_color
       end
     end
   end

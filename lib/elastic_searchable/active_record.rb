@@ -21,12 +21,14 @@ module ElasticSearchable
       # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
       # :if (optional) reference symbol/proc condition to only index when condition is true 
       # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
+      # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
       def elastic_searchable(options = {})
         options.symbolize_keys!
         options[:index] ||= self.table_name
         options[:type] ||= self.table_name
         options[:index_options] ||= {}
         options[:mapping] ||= false
+        options[:json] ||= {}
         self.elastic_options = options
 
         extend ElasticSearchable::ActiveRecord::Index
@@ -40,15 +42,11 @@ module ElasticSearchable
     end
 
     module InstanceMethods
-      # build json document to index in elasticsearch
-      # default implementation simply calls to_json
-      # implementations can override this method to index custom content
       def indexed_json_document
-        self.to_json
+        self.as_json self.class.elastic_options[:json]
       end
       def index_in_elastic_search(lifecycle = nil)
-        document = self.indexed_json_document
-        ElasticSearchable.searcher.index document, self.class.index_options.merge(:id => self.id.to_s)
+        ElasticSearchable.searcher.index self.indexed_json_document, self.class.index_options.merge(:id => self.id.to_s)
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
