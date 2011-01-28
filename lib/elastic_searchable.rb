@@ -7,6 +7,9 @@ module ElasticSearchable
     def searcher
       @searcher ||= ElasticSearch.new("localhost:9200")
     end
+    def backgrounded_options
+      {:queue => 'elasticsearch'}
+    end
   end
 end
 
