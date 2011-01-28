@@ -148,9 +148,8 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.searcher.get @friend.id, Friend.index_options
-        puts @response.inspect
-        expectation = {}
-        assert_equal expectation, @response
+        assert_equal 'bob', @response.name
+        assert_nil @response.favorite_color
       end
     end
   end
