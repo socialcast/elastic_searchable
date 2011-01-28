@@ -40,6 +40,20 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   class Post < ActiveRecord::Base
     elastic_searchable
+    after_index :indexed
+    after_index_on_create :indexed_on_create
+    def indexed
+      @indexed = true
+    end
+    def indexed?
+      @indexed
+    end
+    def indexed_on_create
+      @indexed_on_create = true
+    end
+    def indexed_on_create?
+      @indexed_on_create
+    end
   end
 
   context 'Post class with default elastic_searchable config' do
@@ -73,6 +87,13 @@ class TestElasticSearchable < Test::Unit::TestCase
       @post = Post.create :title => 'foo', :body => "bar"
       Post.create_index
     end
+    should 'have fired after_index callback' do
+      assert @post.indexed?
+    end
+    should 'have fired after_index_on_create callback' do
+      assert @post.indexed_on_create?
+    end
+
     context 'searching for results' do
       setup do
         @results = Post.search 'foo'
