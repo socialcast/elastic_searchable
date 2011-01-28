@@ -52,13 +52,13 @@ module ElasticSearchable
         self.run_callbacks(:after_index)
       end
       def should_index?
-        [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_condition(m) } &&
-        ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_condition(m) }
+        [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
+        ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_elastic_condition(m) }
       end
 
       private
       #ripped from activesupport
-      def evaluate_condition(method)
+      def evaluate_elastic_condition(method)
         case method
           when Symbol
             self.send method
