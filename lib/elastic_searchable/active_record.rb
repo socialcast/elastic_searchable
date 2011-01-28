@@ -43,7 +43,7 @@ module ElasticSearchable
 
     module InstanceMethods
       def index_in_elastic_search(lifecycle = nil)
-        document = self.to_json self.class.elastic_options[:json]
+        document = self.as_json self.class.elastic_options[:json]
         ElasticSearchable.searcher.index document, self.class.index_options.merge(:id => self.id.to_s)
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
