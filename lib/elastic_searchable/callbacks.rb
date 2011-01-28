@@ -6,9 +6,9 @@ module ElasticSearchable
 
     module ClassMethods
       def add_indexing_callbacks
-        backgrounded :update_index_on_create => {:queue => 'searchindex'}, :update_index_on_update => {:queue => 'searchindex'}
+        backgrounded :update_index_on_create => ElasticSearchable.backgrounded_options, :update_index_on_update => ElasticSearchable.backgrounded_options
         class << self
-          backgrounded :delete_id_from_index => {:queue => 'searchindex'}
+          backgrounded :delete_id_from_index => ElasticSearchable.backgrounded_options
         end
 
         define_callbacks :after_index_on_create, :after_index_on_update, :after_index
