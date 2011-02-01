@@ -14,8 +14,8 @@ module ElasticSearchable
         query = {:query => query}
       end
       hits = ElasticSearchable.searcher.search query, index_options.merge(options)
-      ids = hits.collect(&:_id)
-      results = self.find(ids).sort_by {|result| ids.index(result.id.to_s) }
+      ids = hits.collect {|h| h._id.to_i }
+      results = self.find(ids).sort_by {|result| ids.index(result.id) }
 
       page = WillPaginate::Collection.new(hits.current_page, hits.per_page, hits.total_entries)
       page.replace results
