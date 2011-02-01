@@ -105,6 +105,17 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal 1, @results.total_entries
       end
     end
+
+    context 'sorting search results' do
+      setup do
+        @second_post = Post.create :title => 'foo', :body => "second bar"
+        Post.create_index
+        @results = Post.search 'foo', :sort => 'id:reverse'
+      end
+      should 'sort results correctly' do
+        assert_equal @second_post, @results.first
+      end
+    end
   end
 
   class Blog < ActiveRecord::Base
