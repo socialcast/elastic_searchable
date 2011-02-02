@@ -13,7 +13,7 @@ module ElasticSearchable
     end
 
     def assert_ok_response(response)
-      raise 'bad response' unless response['ok']
+      raise (response['error'] || "Error executing request")  unless response['ok']
     end
   end
 end

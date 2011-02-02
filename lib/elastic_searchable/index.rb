@@ -4,7 +4,7 @@ module ElasticSearchable
 
       def create_index
         self.delete_index
-        ElasticSearchable.put "/#{index_name}"
+        ElasticSearchable.assert_ok_response ElasticSearchable.put "/#{index_name}"
 
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
@@ -16,12 +16,12 @@ module ElasticSearchable
       #
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/refresh/
       def refresh_index
-        ElasticSearchable.post "/#{index_name}/_refresh"
+        ElasticSearchable.assert_ok_response ElasticSearchable.post "/#{index_name}/_refresh"
       end
 
       # deletes the index for this model
       def delete_index
-        ElasticSearchable.delete "/#{index_name}"
+        ElasticSearchable.assert_ok_response ElasticSearchable.delete "/#{index_name}"
       end
 
       #delete one record from the index
