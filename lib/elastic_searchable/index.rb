@@ -3,10 +3,11 @@ module ElasticSearchable
     module Index
       def create_index
         self.delete_index
-        ElasticSearchable.searcher.create_index index_name, self.elastic_options[:index_options]
-        if mapping = self.elastic_options[:mapping]
-          ElasticSearchable.searcher.update_mapping mapping, self.index_options
-        end
+
+        Typhoeus::Request.put("http://localhost:9200/#{index_name}", :verbose => true)
+        # if mapping = self.elastic_options[:mapping]
+        #   ElasticSearchable.searcher.update_mapping mapping, self.index_options
+        # end
 
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
@@ -18,16 +19,12 @@ module ElasticSearchable
       #
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/refresh/
       def refresh_index
-        ElasticSearchable.searcher.refresh index_name
+        Typhoeus::Request.post("http://localhost:9200/#{index_name/_refresh}", :verbose => true)
       end
 
       # deletes the index for this model
       def delete_index
-        begin
-          ElasticSearchable.searcher.delete_index index_name
-        rescue ElasticSearch::RequestError
-          # it's ok, this means that the index doesn't exist
-        end
+        Typhoeus::Request.delete("http://localhost:9200/#{index_name}", :verbose => true)
       end
 
       #optimize the index

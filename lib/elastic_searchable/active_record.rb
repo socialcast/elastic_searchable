@@ -46,7 +46,7 @@ module ElasticSearchable
         self.as_json self.class.elastic_options[:json]
       end
       def index_in_elastic_search(lifecycle = nil)
-        ElasticSearchable.searcher.index self.indexed_json_document, self.class.index_options.merge(:id => self.id.to_s)
+        Typhoeus::Request.put("http://localhost:9200/#{self.class.index_name}/#{self.class.elastic_options[:type]}/#{self.id}", :params => self.indexed_json_document, :verbose => true)
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
