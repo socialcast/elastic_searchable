@@ -15,6 +15,11 @@ module ElasticSearchable
     def assert_ok_response(response)
       raise (response['error'] || "Error executing request")  unless response['ok']
     end
+    def request(method, url, options = {})
+      response = self.send(method, url, options)
+      assert_ok_response response
+      response
+    end
   end
 end
 

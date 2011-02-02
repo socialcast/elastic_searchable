@@ -12,8 +12,7 @@ module ElasticSearchable
       options[:fields] ||= '_id'
       options[:q] ||= query
 
-      response = ElasticSearchable.get "/#{index_name}/#{self.elastic_options[:type]}/_search", :query => options
-      ElasticSearchable.assert_ok_response response
+      response = ElasticSearchable.request :get, "/#{index_name}/#{self.elastic_options[:type]}/_search", :query => options
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'] }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }
