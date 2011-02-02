@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 # Add dependencies required to use your gem here.
 gem "activerecord", "~> 2.3.5"
-gem 'rubberband', '~> 0.0.6'
+gem 'httparty', '~> 0.7.3'
 gem 'backgrounded', '~> 0.7.0'
 gem 'will_paginate', '~> 2.3.15'
 gem 'larsklevan-after_commit', '~> 1.0.5', :require => 'after_commit'

@@ -1,14 +1,19 @@
-require 'rubberband'
+require 'httparty'
 require 'elastic_searchable/active_record'
 
 module ElasticSearchable
+  include HTTParty
+  format :json
+  base_uri 'localhost:9200'
+  debug_output
+
   class << self
-    attr_accessor :searcher
-    def searcher
-      @searcher ||= ElasticSearch.new("localhost:9200")
-    end
     def backgrounded_options
       {:queue => 'elasticsearch'}
+    end
+
+    def assert_ok_response(response)
+      raise 'bad response' unless response['ok']
     end
   end
 end
