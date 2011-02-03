@@ -15,7 +15,7 @@ module ElasticSearchable
       options[:from] ||= options[:size] * (options[:page].to_i-1) if options[:page] && options[:page].to_i > 1
       options[:from] ||= options[:offset] if options[:offset]
 
-      response = ElasticSearchable.request :get, "/#{index_name}/#{self.elastic_options[:type]}/_search", :query => options
+      response = ElasticSearchable.request :get, index_type_path('_search'), :query => options
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }

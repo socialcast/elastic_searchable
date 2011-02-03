@@ -44,7 +44,7 @@ module ElasticSearchable
         self.as_json self.class.elastic_options[:json]
       end
       def index_in_elastic_search(lifecycle = nil)
-        ElasticSearchable.request :put, "/#{self.class.index_name}/#{self.class.elastic_options[:type]}/#{self.id}", :body => self.indexed_json_document.to_json
+        ElasticSearchable.request :put, self.class.index_type_path(self.id), :body => self.indexed_json_document.to_json
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
