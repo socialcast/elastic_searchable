@@ -78,7 +78,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'with empty index' do
     setup do
       begin
-        ElasticSearchable.delete '/elastic_searchable'
+        ElasticSearchable.request :delete, '/elastic_searchable'
       rescue ElasticSearchable::ElasticError
         #already deleted
       end
@@ -161,7 +161,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         Post.refresh_index
       end
       should 'be removed from the index' do
-        @request = ElasticSearchable.get "/elastic_searchable/posts/#{@first_post.id}"
+        @request = ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
         assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
       end
     end

@@ -17,17 +17,12 @@ module ElasticSearchable
     end
 
     #perform a request to the elasticsearch server
-    def request(method, path, params = {}, options = {})
+    def request(method, path, params = {})
       url = ['http://', 'localhost:9200', path].join
-      response = case method
-      when :delete
-        RestClient.delete url, options
-      else
-        RestClient.send(method, url, params, options)
-      end
+      RestClient.log = Logger.new(STDOUT)
+      response = RestClient.send method, url, params
       json = Crack::JSON.parse(response.body)
-      puts response.body
-      puts "elasticsearch request: #{method} #{url} #{" finished in #{json['took']}ms" if json['took']}"
+      #puts "elasticsearch request: #{method} #{url} #{" finished in #{json['took']}ms" if json['took']}"
       json
     end
   end
