@@ -2,6 +2,7 @@ module ElasticSearchable
   module ActiveRecord
     module Index
 
+      # helper method to clean out existing index and reindex all objects
       def rebuild_index
         self.clean_index
         self.update_index_mapping
