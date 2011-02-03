@@ -1,6 +1,31 @@
 = elastic_searchable
 
-Description goes here.
+Integrate the elasticsearch library into Rails.
+
+== Usage
+  class Blog < ActiveRecord::Base
+    elastic_searchable
+  end
+
+  results = Blog.search 'foo'
+
+== Features
+
+* fast. fast! FAST! 30% faster than rubberband on average.
+* active record callbacks automatically keep search index up to date as your data changes
+* out of the box background indexing of data using backgrounded.  Don't lock up a foreground process waiting on a background job!
+* integrates with will_paginate library for easy pagination of search results
+
+== Installation
+  #Gemfile
+  gem 'elastic_searchable'
+
+== Configuration
+
+  #config/initializers/elastic_searchable.rb
+  #customize elasticsearch host
+  #defaults to localhost:9200
+  ElasticSearchable.base_uri = 'server:9200'
 
 == Contributing to elastic_searchable
  

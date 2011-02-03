@@ -4,7 +4,11 @@ module ElasticSearchable
 
       # helper method to clean out existing index and reindex all objects
       def rebuild_index
-        self.clean_index
+        begin
+          self.clean_index
+        rescue ElasticSearchable::ElasticError
+          # no index
+        end
         self.update_index_mapping
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
