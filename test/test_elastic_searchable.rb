@@ -108,7 +108,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.refresh_index
     end
 
-    context 'searching for first result' do
+    context 'searching for results' do
       setup do
         @results = Post.search 'first'
       end
@@ -116,7 +116,10 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal @first_post, @results.first
       end
       should 'be paginated' do
-        assert_equal 1, @results.total_entries
+        assert_equal 1, @results.current_page
+        assert_equal 20, @results.per_page
+        assert_nil @results.previous_page
+        assert_nil @results.next_page
       end
     end
 
@@ -126,6 +129,12 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'find object' do
         assert_equal @second_post, @results.first
+      end
+      should 'be paginated' do
+        assert_equal 2, @results.current_page
+        assert_equal 1, @results.per_page
+        assert_equal 1, @results.previous_page
+        assert_nil @results.next_page
       end
     end
 
