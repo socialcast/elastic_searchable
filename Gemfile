@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 # Add dependencies required to use your gem here.
 gem "activerecord", "~> 2.3.5"
-gem 'rest-client', '1.4.0', :require => 'rest_client'
+gem 'rest-client', '1.6.1', :require => 'rest_client'
 gem 'crack', '0.1.8'
 gem 'backgrounded', '~> 0.7.0'
 gem 'will_paginate', '~> 2.3.15'

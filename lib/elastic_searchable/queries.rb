@@ -15,7 +15,7 @@ module ElasticSearchable
       options[:size] ||= (options.delete(:per_page) || 20)
       options[:from] ||= options[:size] * (page - 1)
 
-      response = ElasticSearchable.request :get, index_type_path('_search'), :query => options
+      response = ElasticSearchable.request :get, index_type_path('_search'), :params => options
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }

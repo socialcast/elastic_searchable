@@ -69,7 +69,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'requesting invalid url' do
     should 'raise error' do
-      assert_raises ElasticSearchable::ElasticError do
+      assert_raises RestClient::InternalServerError do
         ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
       end
     end
@@ -79,7 +79,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     setup do
       begin
         ElasticSearchable.request :delete, '/elastic_searchable'
-      rescue ElasticSearchable::ElasticError
+      rescue RestClient::ResourceNotFound
         #already deleted
       end
     end
@@ -165,8 +165,9 @@ class TestElasticSearchable < Test::Unit::TestCase
         Post.refresh_index
       end
       should 'be removed from the index' do
-        @request = ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
-        assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
+        assert_raises RestClient::ResourceNotFound do
+          ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
+        end
       end
     end
   end

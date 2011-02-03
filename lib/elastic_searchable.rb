@@ -17,10 +17,22 @@ module ElasticSearchable
     end
 
     #perform a request to the elasticsearch server
-    def request(method, path, params = {})
+    def request(method, path, params = {}, options = {})
+      options.reverse_merge! :content_type => :json, :accept => :json
       url = ['http://', 'localhost:9200', path].join
       RestClient.log = Logger.new(STDOUT)
-      response = RestClient.send method, url, params
+      response = case method
+      when :get
+        RestClient.get url, params.merge(options)
+      when :put
+        RestClient.put url, params, options
+      when :post
+        RestClient.post url, params, options
+      when :delete
+        RestClient.delete url, params.merge(options)
+      else
+        raise ElasticSearchable::ElasticError("Unknown request method: #{method}")
+      end
       json = Crack::JSON.parse(response.body)
       #puts "elasticsearch request: #{method} #{url} #{" finished in #{json['took']}ms" if json['took']}"
       json

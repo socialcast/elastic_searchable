@@ -4,11 +4,7 @@ module ElasticSearchable
 
       # helper method to clean out existing index and reindex all objects
       def rebuild_index
-        begin
-          self.clean_index
-        rescue ElasticSearchable::ElasticError
-          # no index
-        end
+        self.clean_index
         self.update_index_mapping
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
@@ -20,6 +16,8 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_mapping/
       def clean_index
         ElasticSearchable.request :delete, index_type_path
+      rescue RestClient::BadRequest
+        # index doesn't exist
       end
 
       # configure the index for this type
