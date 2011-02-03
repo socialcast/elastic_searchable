@@ -11,6 +11,9 @@ module ElasticSearchable
     def search(query, options = {})
       options[:fields] ||= '_id'
       options[:q] ||= query
+      options[:size] ||= (options[:per_page] || options[:limit] || 10)
+      options[:from] ||= options[:size] * (options[:page].to_i-1) if options[:page] && options[:page].to_i > 1
+      options[:from] ||= options[:offset] if options[:offset]
 
       response = ElasticSearchable.request :get, "/#{index_name}/#{self.elastic_options[:type]}/_search", :query => options
       hits = response['hits']
