@@ -120,9 +120,18 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
 
+    context 'searching for second page using will_paginate params' do
+      setup do
+        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'id'
+      end
+      should 'find object' do
+        assert_equal @second_post, @results.first
+      end
+    end
+
     context 'sorting search results' do
       setup do
-        @results = Post.search 'foo', :sort => 'id:reverse'
+        @results = Post.search 'foo', :sort => 'id:desc'
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first
