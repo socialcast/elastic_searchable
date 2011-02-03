@@ -15,7 +15,7 @@ module ElasticSearchable
       attr_accessor :elastic_options
 
       # Valid options:
-      # :index (optional) configure index to store data in.  default to model table name
+      # :index (optional) configure index to store data in.  default to ElasticSearchable.default_index
       # :type (optional) configue type to store data in.  default to model table name
       # :index_options (optional) configure index properties (ex: tokenizer)
       # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
@@ -24,10 +24,8 @@ module ElasticSearchable
       # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
       def elastic_searchable(options = {})
         options.symbolize_keys!
-        options[:index] ||= self.table_name
+        options[:index] ||= ElasticSearchable.default_index
         options[:type] ||= self.table_name
-        options[:index_options] ||= {}
-        options[:mapping] ||= false
         options[:json] ||= {}
         self.elastic_options = options
 

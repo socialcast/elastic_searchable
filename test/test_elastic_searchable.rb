@@ -55,7 +55,6 @@ class TestElasticSearchable < Test::Unit::TestCase
       @indexed_on_create
     end
   end
-
   context 'Post class with default elastic_searchable config' do
     setup do
       @clazz = Post
@@ -66,26 +65,34 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'define elastic_options' do
       assert @clazz.elastic_options
     end
-    should 'define index_name' do
-      assert_equal 'posts', @clazz.index_name
+    should 'define default elastic_options[:index]' do
+      assert_equal ElasticSearchable.default_index, @clazz.elastic_options[:index]
     end
   end
 
-  context 'Post.create_index' do
+  context 'with empty index' do
     setup do
-      Post.create_index
-      @status = ElasticSearchable.request :get, '/posts/_status'
+      begin
+        ElasticSearchable.delete '/elastic_searchable'
+      rescue ElasticSearchable::ElasticError
+        #already deleted
+      end
     end
-    should 'have created index' do
-      assert @status['ok']
+
+    context 'Post.create_index' do
+      setup do
+        Post.create_index
+        @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
+      end
+      should 'have created index' do
+        assert @status['ok']
+      end
     end
   end
 
-  context 'creating new instance' do
+  context 'Post.create' do
     setup do
-      Post.delete_all
       @post = Post.create :title => 'foo', :body => "bar"
-      Post.rebuild_index
     end
     should 'have fired after_index callback' do
       assert @post.indexed?
@@ -93,13 +100,23 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'have fired after_index_on_create callback' do
       assert @post.indexed_on_create?
     end
+  end
 
-    context 'searching for results' do
+  context 'with index containing multiple results' do
+    setup do
+      Post.delete_all
+      @first_post = Post.create :title => 'foo', :body => "first bar"
+      @second_post = Post.create :title => 'foo', :body => "second bar"
+      Post.rebuild_index
+      Post.refresh_index
+    end
+
+    context 'searching for first result' do
       setup do
-        @results = Post.search 'foo'
+        @results = Post.search 'first'
       end
       should 'find created object' do
-        assert_equal @post, @results.first
+        assert_equal @first_post, @results.first
       end
       should 'be paginated' do
         assert_equal 1, @results.total_entries
@@ -108,7 +125,6 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'sorting search results' do
       setup do
-        @second_post = Post.create :title => 'foo', :body => "second bar"
         @results = Post.search 'foo', :sort => 'id:reverse'
       end
       should 'sort results correctly' do
@@ -116,6 +132,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
   end
+
 
   class Blog < ActiveRecord::Base
     elastic_searchable :if => proc {|b| b.should_index? }
@@ -150,8 +167,8 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'activerecord class with :mapping=>{}' do
     context 'creating index' do
       setup do
-        User.create_index
-        @status = ElasticSearchable.request :get, '/users/_mapping'
+        User.update_index_mapping
+        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
       end
       should 'have set mapping' do
         expected = {
@@ -161,7 +178,7 @@ class TestElasticSearchable < Test::Unit::TestCase
             }
           }
         }
-        assert_equal expected, @status['users'], @status.inspect
+        assert_equal expected, @status['elastic_searchable'], @status.inspect
       end
     end
   end
@@ -174,7 +191,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       setup do
         Friend.delete_all
         @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
-        Friend.create_index
+        Friend.rebuild_index
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.request :get, "/friends/friends/#{@friend.id}"
