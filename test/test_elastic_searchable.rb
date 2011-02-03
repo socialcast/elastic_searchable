@@ -83,7 +83,11 @@ class TestElasticSearchable < Test::Unit::TestCase
         #already deleted
       end
     end
-
+    context 'Post.rebuild_index' do
+      should 'not error out' do
+        Post.rebuild_index
+      end
+    end
     context 'Post.create_index' do
       setup do
         Post.create_index
