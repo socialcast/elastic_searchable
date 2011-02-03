@@ -13,9 +13,9 @@ module ElasticSearchable
       end
 
       # delete all documents of this type in the index
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/delete_by_query/
+      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_mapping/
       def clean_index
-        ElasticSearchable.request :delete, index_type_path('_query'), :query => {:q => '*'}
+        ElasticSearchable.request :delete, index_type_path
       end
 
       # configure the index for this type
