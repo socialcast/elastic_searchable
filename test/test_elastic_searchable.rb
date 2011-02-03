@@ -207,4 +207,16 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
   end
+
+  context 'updating ElasticSearchable.default_index' do
+    setup do
+      ElasticSearchable.default_index = 'my_new_index'
+    end
+    teardown do
+      ElasticSearchable.default_index = nil
+    end
+    should 'change default index' do
+      assert_equal 'my_new_index', ElasticSearchable.default_index
+    end
+  end
 end

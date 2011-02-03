@@ -5,14 +5,16 @@ module ElasticSearchable
   include HTTParty
   format :json
   base_uri 'localhost:9200'
-  debug_output
+  #debug_output
 
   class ElasticError < StandardError; end
   class << self
     # setup the default index to use
     # one index can hold many object 'types'
-    attr_accessor :default_index
     @@default_index = nil
+    def default_index=(index)
+      @@default_index = index
+    end
     def default_index
       @@default_index || 'elastic_searchable'
     end
