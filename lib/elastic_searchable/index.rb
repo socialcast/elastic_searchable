@@ -35,7 +35,7 @@ module ElasticSearchable
 
       #delete one record from the index
       def delete_id_from_index(id)
-        ElasticSearchable.searcher.delete id.to_s, index_options
+        ElasticSearchable.request :delete, "/#{index_name}/#{index_type}/#{id}"
       end
 
       def index_name
