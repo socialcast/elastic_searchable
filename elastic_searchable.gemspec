@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{elastic_searchable}
-  s.version = "0.2.2"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ryan Sonnek"]
-  s.date = %q{2011-02-01}
+  s.date = %q{2011-02-03}
   s.description = %q{integrate the elastic search engine with rails}
   s.email = %q{ryan@codecrate.com}
   s.extra_rdoc_files = [
@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/wireframe/elastic_searchable}
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.4.2}
+  s.rubygems_version = %q{1.5.0}
   s.summary = %q{elastic search for activerecord}
   s.test_files = [
     "test/helper.rb",
@@ -48,7 +48,7 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<activerecord>, ["~> 2.3.5"])
-      s.add_runtime_dependency(%q<rubberband>, ["~> 0.0.6"])
+      s.add_runtime_dependency(%q<httparty>, ["~> 0.7.3"])
       s.add_runtime_dependency(%q<backgrounded>, ["~> 0.7.0"])
       s.add_runtime_dependency(%q<will_paginate>, ["~> 2.3.15"])
       s.add_runtime_dependency(%q<larsklevan-after_commit>, ["~> 1.0.5"])
@@ -60,7 +60,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<sqlite3-ruby>, ["~> 1.3.2"])
     else
       s.add_dependency(%q<activerecord>, ["~> 2.3.5"])
-      s.add_dependency(%q<rubberband>, ["~> 0.0.6"])
+      s.add_dependency(%q<httparty>, ["~> 0.7.3"])
       s.add_dependency(%q<backgrounded>, ["~> 0.7.0"])
       s.add_dependency(%q<will_paginate>, ["~> 2.3.15"])
       s.add_dependency(%q<larsklevan-after_commit>, ["~> 1.0.5"])
@@ -73,7 +73,7 @@ Gem::Specification.new do |s|
     end
   else
     s.add_dependency(%q<activerecord>, ["~> 2.3.5"])
-    s.add_dependency(%q<rubberband>, ["~> 0.0.6"])
+    s.add_dependency(%q<httparty>, ["~> 0.7.3"])
     s.add_dependency(%q<backgrounded>, ["~> 0.7.0"])
     s.add_dependency(%q<will_paginate>, ["~> 2.3.15"])
     s.add_dependency(%q<larsklevan-after_commit>, ["~> 1.0.5"])
