@@ -65,9 +65,6 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'define elastic_options' do
       assert @clazz.elastic_options
     end
-    should 'define default elastic_options[:index]' do
-      assert_equal ElasticSearchable.default_index, @clazz.elastic_options[:index]
-    end
   end
 
   context 'with empty index' do

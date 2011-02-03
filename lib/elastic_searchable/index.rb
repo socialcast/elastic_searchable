@@ -64,10 +64,10 @@ module ElasticSearchable
 
       private
       def index_name
-        self.elastic_options[:index]
+        self.elastic_options[:index] || ElasticSearchable.default_index
       end
       def index_type
-        self.elastic_options[:type]
+        self.elastic_options[:type] || self.table_name
       end
     end
   end

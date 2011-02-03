@@ -24,9 +24,6 @@ module ElasticSearchable
       # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
       def elastic_searchable(options = {})
         options.symbolize_keys!
-        options[:index] ||= ElasticSearchable.default_index
-        options[:type] ||= self.table_name
-        options[:json] ||= {}
         self.elastic_options = options
 
         extend ElasticSearchable::ActiveRecord::Index
