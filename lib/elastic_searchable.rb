@@ -22,7 +22,7 @@ module ElasticSearchable
     #perform a request to the elasticsearch server
     def request(method, url, options = {})
       response = self.send(method, url, options)
-      puts "elasticsearch request: #{method} #{url} #{" finished in #{response['took']}ms" if response['took']}"
+      #puts "elasticsearch request: #{method} #{url} #{" finished in #{response['took']}ms" if response['took']}"
       assert_ok_response response
       response
     end
@@ -30,7 +30,7 @@ module ElasticSearchable
     private
     def assert_ok_response(response)
       error = response['error'] || "Error executing request: #{response.inspect}"
-      raise ElasticSearchable::ElasticError.new(error) if response['error'] || !response.success?
+      raise ElasticSearchable::ElasticError.new(error) if response['error'] || !response.response.is_a?(Net::HTTPOK)
     end
   end
 end

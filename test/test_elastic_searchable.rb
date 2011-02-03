@@ -67,6 +67,14 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'requesting invalid url' do
+    should 'raise error' do
+      assert_raises ElasticSearchable::ElasticError do
+        ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
+      end
+    end
+  end
+
   context 'with empty index' do
     setup do
       begin
@@ -154,7 +162,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'be removed from the index' do
         @request = ElasticSearchable.get "/elastic_searchable/posts/#{@first_post.id}"
-        assert @request.not_found?, @request.inspect
+        assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
       end
     end
   end
