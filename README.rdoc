@@ -2,6 +2,10 @@
 
 Description goes here.
 
+== Features
+
+* fast. fast! FAST! 30% faster than rubberband on average.
+
 == Contributing to elastic_searchable
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
