@@ -22,7 +22,7 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/put_mapping/
       def update_index_mapping
         if mapping = self.elastic_options[:mapping]
-          ElasticSearchable.request :put, index_type_path('_mapping'), :body => {index_type => mapping}.to_json
+          ElasticSearchable.request :put, index_type_path('_mapping'), {index_type => mapping}.to_json
         end
       end
 
