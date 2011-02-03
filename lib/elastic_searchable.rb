@@ -5,7 +5,7 @@ module ElasticSearchable
   include HTTParty
   format :json
   base_uri 'localhost:9200'
-  debug_output
+  #debug_output
 
   class ElasticError < StandardError; end
   class << self
