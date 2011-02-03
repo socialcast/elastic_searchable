@@ -11,9 +11,14 @@ module ElasticSearchable
         self.refresh_index
       end
       def create_index
-        ElasticSearchable.request :put, "/#{index_name}"
-      rescue ElasticSearchable::ElasticError
-        #index already exists
+        begin
+          ElasticSearchable.request :put, "/#{index_name}"
+        rescue ElasticSearchable::ElasticError
+          #index already exists
+        end
+        if mapping = self.elastic_options[:mapping]
+          ElasticSearchable.request :put, "/#{index_name}/#{index_type}/_mapping", :body => {index_type => mapping}.to_json
+        end
       end
       # explicitly refresh the index, making all operations performed since the last refresh
       # available for search
@@ -35,6 +40,9 @@ module ElasticSearchable
 
       def index_name
         self.elastic_options[:index]
+      end
+      def index_type
+        self.elastic_options[:type]
       end
       def index_options
         self.elastic_options.slice :index, :type

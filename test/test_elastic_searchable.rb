@@ -156,14 +156,12 @@ class TestElasticSearchable < Test::Unit::TestCase
       should 'have set mapping' do
         expected = {
           "users"=> {
-            "users"=> {
-              "properties"=> {
-                "name"=> {"type"=>"string", "index"=>"not_analyzed"}
-              }
+            "properties"=> {
+              "name"=> {"type"=>"string", "index"=>"not_analyzed"}
             }
           }
         }
-        assert_equal expected, @status
+        assert_equal expected, @status['users'], @status.inspect
       end
     end
   end
@@ -180,8 +178,10 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.request :get, "/friends/friends/#{@friend.id}"
-        assert_equal 'bob', @response.name
-        assert_nil @response.favorite_color
+        expected = {
+          "name" => 'bob' #favorite_color should not be indexed
+        }
+        assert_equal expected, @response['_source'], @response.inspect
       end
     end
   end
