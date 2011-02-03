@@ -67,6 +67,14 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'requesting invalid url' do
+    should 'raise error' do
+      assert_raises ElasticSearchable::ElasticError do
+        ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
+      end
+    end
+  end
+
   context 'with empty index' do
     setup do
       begin
@@ -108,7 +116,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.refresh_index
     end
 
-    context 'searching for first result' do
+    context 'searching for results' do
       setup do
         @results = Post.search 'first'
       end
@@ -116,13 +124,31 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal @first_post, @results.first
       end
       should 'be paginated' do
-        assert_equal 1, @results.total_entries
+        assert_equal 1, @results.current_page
+        assert_equal 20, @results.per_page
+        assert_nil @results.previous_page
+        assert_nil @results.next_page
+      end
+    end
+
+    context 'searching for second page using will_paginate params' do
+      setup do
+        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'id'
+      end
+      should 'find object' do
+        assert_equal @second_post, @results.first
+      end
+      should 'be paginated' do
+        assert_equal 2, @results.current_page
+        assert_equal 1, @results.per_page
+        assert_equal 1, @results.previous_page
+        assert_nil @results.next_page
       end
     end
 
     context 'sorting search results' do
       setup do
-        @results = Post.search 'foo', :sort => 'id:reverse'
+        @results = Post.search 'foo', :sort => 'id:desc'
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first
@@ -136,7 +162,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'be removed from the index' do
         @request = ElasticSearchable.get "/elastic_searchable/posts/#{@first_post.id}"
-        assert @request.not_found?, @request.inspect
+        assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
       end
     end
   end
