@@ -131,6 +131,17 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal @second_post, @results.first
       end
     end
+
+    context 'destroying one object' do
+      setup do
+        @first_post.destroy
+        Post.refresh_index
+      end
+      should 'be removed from the index' do
+        @request = ElasticSearchable.get "/elastic_searchable/posts/#{@first_post.id}"
+        assert @request.not_found?, @request.inspect
+      end
+    end
   end
 
 
@@ -145,9 +156,6 @@ class TestElasticSearchable < Test::Unit::TestCase
       setup do
         Blog.any_instance.expects(:index_in_elastic_search).never
         Blog.create! :title => 'foo'
-      end
-      teardown do
-        Blog.destroy_all
       end
       should 'not index record' do end #see expectations
     end
