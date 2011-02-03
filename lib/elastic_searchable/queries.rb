@@ -9,12 +9,9 @@ module ElasticSearchable
     #
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
+      translate_will_paginate_params options
       options[:fields] ||= '_id'
       options[:q] ||= query
-      options[:size] ||= (options.delete(:per_page) || 20)
-      if page = options.delete(:page)
-        options[:from] ||= options[:size] * (page.to_i - 1)
-      end
 
       response = ElasticSearchable.request :get, index_type_path('_search'), :query => options
       hits = response['hits']
@@ -24,6 +21,14 @@ module ElasticSearchable
       page = WillPaginate::Collection.new(1, 20, hits['total'])
       page.replace results
       page
+    end
+
+    private
+    def translate_will_paginate_params(options)
+      options[:size] ||= (options.delete(:per_page) || 20)
+      if page = options.delete(:page)
+        options[:from] ||= options[:size] * (page.to_i - 1)
+      end
     end
   end
 end
