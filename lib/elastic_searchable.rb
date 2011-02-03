@@ -7,13 +7,11 @@ module ElasticSearchable
   base_uri 'localhost:9200'
   debug_output
 
+  class ElasticError < StandardError; end
   class << self
-    def backgrounded_options
-      {:queue => 'elasticsearch'}
-    end
-
     def assert_ok_response(response)
-      raise (response['error'] || "Error executing request")  unless response['ok']
+      error = response['error'] || "Error executing request: #{response.inspect}"
+      raise ElasticSearchable::ElasticError.new(error) if response['error'] || !response.success?
     end
     def request(method, url, options = {})
       response = self.send(method, url, options)

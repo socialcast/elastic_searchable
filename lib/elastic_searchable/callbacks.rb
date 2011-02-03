@@ -3,12 +3,15 @@ module ElasticSearchable
     def self.included(base)
       base.send :extend, ClassMethods
     end
+    def self.backgrounded_options
+      {:queue => 'elasticsearch'}
+    end
 
     module ClassMethods
       def add_indexing_callbacks
-        backgrounded :update_index_on_create => ElasticSearchable.backgrounded_options, :update_index_on_update => ElasticSearchable.backgrounded_options
+        backgrounded :update_index_on_create => ElasticSearchable::Callbacks.backgrounded_options, :update_index_on_update => ElasticSearchable::Callbacks.backgrounded_options
         class << self
-          backgrounded :delete_id_from_index => ElasticSearchable.backgrounded_options
+          backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
         end
 
         define_callbacks :after_index_on_create, :after_index_on_update, :after_index

@@ -74,7 +74,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'Post.create_index' do
     setup do
       Post.create_index
-      @status = ElasticSearchable.searcher.index_status Post.index_name
+      @status = ElasticSearchable.request :get, '/posts/_status'
     end
     should 'have created index' do
       assert @status['ok']
@@ -85,7 +85,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     setup do
       Post.delete_all
       @post = Post.create :title => 'foo', :body => "bar"
-      Post.create_index
+      Post.rebuild_index
     end
     should 'have fired after_index callback' do
       assert @post.indexed?
@@ -109,7 +109,6 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'sorting search results' do
       setup do
         @second_post = Post.create :title => 'foo', :body => "second bar"
-        Post.create_index
         @results = Post.search 'foo', :sort => 'id:reverse'
       end
       should 'sort results correctly' do
@@ -128,19 +127,20 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'when creating new instance' do
       setup do
         Blog.any_instance.expects(:index_in_elastic_search).never
-        Blog.delete_all
-        Blog.create_index
         Blog.create! :title => 'foo'
       end
-      should 'not index record' do end #see expectations
-
-      context 'recreating new index' do
-        setup do
-          Blog.any_instance.expects(:index_in_elastic_search).never
-          Blog.create_index
-        end
-        should 'not index record' do end #see expectations
+      teardown do
+        Blog.destroy_all
       end
+      should 'not index record' do end #see expectations
+    end
+    context 'rebuilding new index' do
+      setup do
+        Blog.any_instance.expects(:index_in_elastic_search).never
+        Blog.create! :title => 'foo'
+        Blog.rebuild_index
+      end
+      should 'not index record' do end #see expectations
     end
   end
 
@@ -151,7 +151,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'creating index' do
       setup do
         User.create_index
-        @status = ElasticSearchable.searcher.index_mapping User.index_name
+        @status = ElasticSearchable.request :get, '/users/_mapping'
       end
       should 'have set mapping' do
         expected = {
@@ -179,7 +179,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         Friend.create_index
       end
       should 'index json with configuration' do
-        @response = ElasticSearchable.searcher.get @friend.id, Friend.index_options
+        @response = ElasticSearchable.request :get, "/friends/friends/#{@friend.id}"
         assert_equal 'bob', @response.name
         assert_nil @response.favorite_color
       end

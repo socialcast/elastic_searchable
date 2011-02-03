@@ -2,14 +2,18 @@ module ElasticSearchable
   module ActiveRecord
     module Index
 
-      def create_index
-        self.delete_index
-        ElasticSearchable.request :put, "/#{index_name}"
-
+      def rebuild_index
+        self.create_index
+        ElasticSearchable.request :delete, "/#{index_name}/_query", :query => {:q => '*'}
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
         end
         self.refresh_index
+      end
+      def create_index
+        ElasticSearchable.request :put, "/#{index_name}"
+      rescue ElasticSearchable::ElasticError
+        #index already exists
       end
       # explicitly refresh the index, making all operations performed since the last refresh
       # available for search
