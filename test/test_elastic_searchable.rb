@@ -39,7 +39,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Post < ActiveRecord::Base
-    elastic_searchable
+    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] }
     after_index :indexed
     after_index_on_create :indexed_on_create
     def indexed
@@ -95,6 +95,17 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'have created index' do
         assert @status['ok']
+      end
+      should 'have used custom index_options' do
+        expected = {
+          "index.number_of_replicas" => "1",
+          "index.number_of_shards" => "5",
+          "index.analysis.analyzer.default.tokenizer" => "standard",
+          "index.analysis.analyzer.default.filter.0" => "standard",
+          "index.analysis.analyzer.default.filter.1" => "lowercase",
+          "index.analysis.analyzer.default.filter.2" => "porterStem"
+        }
+        assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
       end
     end
   end

@@ -33,7 +33,8 @@ module ElasticSearchable
       # create the index
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/create_index/
       def create_index
-        ElasticSearchable.request :put, index_path
+        options = self.elastic_options[:index_options] ? self.elastic_options[:index_options].to_json : ''
+        ElasticSearchable.request :put, index_path, :body => options
       end
 
       # explicitly refresh the index, making all operations performed since the last refresh
