@@ -67,7 +67,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'requesting invalid url' do
+  context 'ElasticSearchable.request with invalid url' do
     should 'raise error' do
       assert_raises ElasticSearchable::ElasticError do
         ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
@@ -81,11 +81,6 @@ class TestElasticSearchable < Test::Unit::TestCase
         ElasticSearchable.delete '/elastic_searchable'
       rescue ElasticSearchable::ElasticError
         #already deleted
-      end
-    end
-    context 'Post.rebuild_index' do
-      should 'not error out' do
-        Post.rebuild_index
       end
     end
     context 'Post.create_index' do
@@ -110,6 +105,16 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'deleting object that does not exist in search index' do
+    setup do
+      Post.delete_index
+      assert_raises ElasticSearchable::ElasticError do
+        Post.delete_id_from_index 123
+      end
+    end
+    should 'raise error' do end
+  end
+
   context 'Post.create' do
     setup do
       @post = Post.create :title => 'foo', :body => "bar"
@@ -127,8 +132,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.delete_all
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
-      Post.rebuild_index
-      Post.refresh_index
+      rebuild_index Post
     end
 
     context 'searching for results' do
@@ -201,7 +205,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       setup do
         Blog.any_instance.expects(:index_in_elastic_search).never
         Blog.create! :title => 'foo'
-        Blog.rebuild_index
+        rebuild_index Blog
       end
       should 'not index record' do end #see expectations
     end
@@ -237,10 +241,10 @@ class TestElasticSearchable < Test::Unit::TestCase
       setup do
         Friend.delete_all
         @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
-        Friend.rebuild_index
+        rebuild_index Friend
       end
       should 'index json with configuration' do
-        @response = ElasticSearchable.request :get, "/friends/friends/#{@friend.id}"
+        @response = ElasticSearchable.request :get, "/elastic_searchable/friends/#{@friend.id}"
         expected = {
           "name" => 'bob' #favorite_color should not be indexed
         }
