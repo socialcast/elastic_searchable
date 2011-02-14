@@ -24,8 +24,6 @@ module ElasticSearchable
     private
     def delete_from_index
       self.class.delete_id_from_index_backgrounded self.id
-    rescue ElasicSearchable::ElasticError
-      # does not exist in index
     end
     def update_index_on_create
       index_in_elastic_search :create
