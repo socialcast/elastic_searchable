@@ -2,20 +2,6 @@ module ElasticSearchable
   module ActiveRecord
     module Index
 
-      # helper method to clean out existing index and reindex all objects
-      def rebuild_index
-        begin
-          self.delete_index
-        rescue ElasticSearchable::ElasticError
-          # no index
-        end
-        self.create_index
-        self.find_each do |record|
-          record.index_in_elastic_search if record.should_index?
-        end
-        self.refresh_index
-      end
-
       # delete all documents of this type in the index
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_mapping/
       def clean_index
