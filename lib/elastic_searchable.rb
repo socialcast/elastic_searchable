@@ -23,12 +23,14 @@ module ElasticSearchable
     def request(method, url, options = {})
       response = self.send(method, url, options)
       #puts "elasticsearch request: #{method} #{url} #{" finished in #{response['took']}ms" if response['took']}"
-      assert_ok_response response
+      validate_response response
       response
     end
 
     private
-    def assert_ok_response(response)
+    # all elasticsearch rest calls return a json response when an error occurs.  ex:
+    # {error: 'an error occurred' }
+    def validate_response(response)
       error = response['error'] || "Error executing request: #{response.inspect}"
       raise ElasticSearchable::ElasticError.new(error) if response['error'] || !response.response.is_a?(Net::HTTPOK)
     end
