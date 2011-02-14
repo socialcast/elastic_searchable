@@ -5,11 +5,11 @@ module ElasticSearchable
       # helper method to clean out existing index and reindex all objects
       def rebuild_index
         begin
-          self.clean_index
+          self.delete_index
         rescue ElasticSearchable::ElasticError
           # no index
         end
-        self.update_index_mapping
+        self.create_index
         self.find_each do |record|
           record.index_in_elastic_search if record.should_index?
         end
@@ -35,6 +35,7 @@ module ElasticSearchable
       def create_index
         options = self.elastic_options[:index_options] ? self.elastic_options[:index_options].to_json : ''
         ElasticSearchable.request :put, index_path, :body => options
+        self.update_index_mapping
       end
 
       # explicitly refresh the index, making all operations performed since the last refresh
