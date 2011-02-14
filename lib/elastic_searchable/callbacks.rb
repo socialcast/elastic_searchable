@@ -17,10 +17,16 @@ module ElasticSearchable
         define_callbacks :after_index_on_create, :after_index_on_update, :after_index
         after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?
         after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?
-        after_commit_on_destroy Proc.new {|o| o.class.delete_id_from_index_backgrounded(o.id) }
+        after_commit_on_destroy :delete_from_index
       end
     end
 
+    private
+    def delete_from_index
+      self.class.delete_id_from_index_backgrounded self.id
+    rescue ElasicSearchable::ElasticError
+      # does not exist in index
+    end
     def update_index_on_create
       index_in_elastic_search :create
     end
