@@ -32,7 +32,7 @@ module ElasticSearchable
     # {error: 'an error occurred' }
     def validate_response(response)
       error = response['error'] || "Error executing request: #{response.inspect}"
-      raise ElasticSearchable::ElasticError.new(error) if response['error'] || !response.response.is_a?(Net::HTTPOK)
+      raise ElasticSearchable::ElasticError.new(error) if response['error'] || ![Net::HTTPOK, Net::HTTPCreated].include?(response.response.class)
     end
   end
 end
