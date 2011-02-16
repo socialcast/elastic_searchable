@@ -26,50 +26,21 @@ module ElasticSearchable
         options.symbolize_keys!
         self.elastic_options = options
 
-        extend ElasticSearchable::ActiveRecord::Index
+        extend ElasticSearchable::Indexing::ClassMethods
         extend ElasticSearchable::Queries
 
-        include ElasticSearchable::ActiveRecord::InstanceMethods
-        include ElasticSearchable::Callbacks
+        include ElasticSearchable::Indexing::InstanceMethods
+        include ElasticSearchable::Callbacks::InstanceMethods
 
-        add_indexing_callbacks
-      end
-    end
-
-    module InstanceMethods
-      def indexed_json_document
-        self.as_json self.class.elastic_options[:json]
-      end
-      def index_in_elastic_search(lifecycle = nil)
-        ElasticSearchable.request :put, self.class.index_type_path(self.id), :body => self.indexed_json_document.to_json
-
-        self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
-        self.run_callbacks(:after_index)
-      end
-      def should_index?
-        [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
-        ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_elastic_condition(m) }
-      end
-
-      private
-      #ripped from activesupport
-      def evaluate_elastic_condition(method)
-        case method
-          when Symbol
-            self.send method
-          when String
-            eval(method, self.instance_eval { binding })
-          when Proc, Method
-            method.call
-          else
-            if method.respond_to?(kind)
-              method.send kind
-            else
-              raise ArgumentError,
-                "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
-                "a block to be invoked, or an object responding to the callback method."
-            end
+        backgrounded :update_index_on_create => ElasticSearchable::Callbacks.backgrounded_options, :update_index_on_update => ElasticSearchable::Callbacks.backgrounded_options
+        class << self
+          backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
         end
+
+        define_callbacks :after_index_on_create, :after_index_on_update, :after_index
+        after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?
+        after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?
+        after_commit_on_destroy :delete_from_index
       end
     end
   end

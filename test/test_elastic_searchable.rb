@@ -17,6 +17,9 @@ class TestElasticSearchable < Test::Unit::TestCase
       t.column :name, :string
       t.column :favorite_color, :string
     end
+    create_table :books, :force => true do |t|
+      t.column :title, :string
+    end
   end
 
   class Post < ActiveRecord::Base
@@ -245,4 +248,41 @@ class TestElasticSearchable < Test::Unit::TestCase
       assert_equal 'my_new_index', ElasticSearchable.default_index
     end
   end
+
+  class Book < ActiveRecord::Base
+    elastic_searchable :percolate => true
+    after_index :indexed
+    def indexed(percolated)
+      @percolated = percolated
+    end
+    def percolated
+      @percolated
+    end
+  end
+  context 'Book class with percolate=true' do
+    context 'with created index' do
+      setup do
+        begin
+          Book.create_index
+        rescue => e
+          #already exists
+        end
+      end
+      context "when index has configured percolation" do
+        setup do
+          #http://www.elasticsearch.org/blog/2011/02/08/percolator.html
+          ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
+        end
+        context 'creating an object that matches the percolation' do
+          setup do
+            @book = Book.create :title => "foo"
+          end
+          should 'return percolated matches in the callback' do
+            assert_equal ['myfilter'], @book.percolated
+          end
+        end
+      end
+    end
+  end
 end
+
