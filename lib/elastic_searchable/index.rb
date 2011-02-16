@@ -63,14 +63,18 @@ module ElasticSearchable
     end
 
     module InstanceMethods
-      def indexed_json_document
-        self.as_json self.class.elastic_options[:json]
-      end
+      # index the object in elasticsearch
+      # fire after_index callbacks after operation is complete 
+      # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def index_in_elastic_search(lifecycle = nil)
         ElasticSearchable.request :put, self.class.index_type_path(self.id), :body => self.indexed_json_document.to_json
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
+      end
+      # document to index in elasticsearch
+      def indexed_json_document
+        self.as_json self.class.elastic_options[:json]
       end
       def should_index?
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
@@ -78,7 +82,7 @@ module ElasticSearchable
       end
 
       private
-      #ripped from activesupport
+      # ripped from activesupport
       def evaluate_elastic_condition(method)
         case method
           when Symbol
