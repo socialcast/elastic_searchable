@@ -1,24 +1,5 @@
 require File.join(File.dirname(__FILE__), 'helper')
 
-module ElasticSearch
-  class Client
-    def index_mapping(*args)
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      indices = args.empty? ? [(default_index || :all)] : args.flatten
-      indices.collect! { |i| [:all].include?(i) ? "_#{i}" : i }
-      execute(:index_mapping, indices, options)
-    end
-  end
-  module Transport
-    class HTTP
-      def index_mapping(index_list, options={})
-        standard_request(:get, {:index => index_list, :op => "_mapping"})
-      end
-    end
-  end
-end
-
-
 class TestElasticSearchable < Test::Unit::TestCase
   ActiveRecord::Schema.define(:version => 1) do
     create_table :posts, :force => true do |t|
