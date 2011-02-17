@@ -258,7 +258,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       context "when index has configured percolation" do
         setup do
-          #http://www.elasticsearch.org/blog/2011/02/08/percolator.html
+          ElasticSearchable.debug_output
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
           ElasticSearchable.request :post, '/_percolator/_refresh'
         end

@@ -70,6 +70,7 @@ module ElasticSearchable
         query = {}
         query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.indexed_json_document.to_json
+        puts response['matches'].inspect if self.class.elastic_options[:percolate]
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
@@ -82,6 +83,10 @@ module ElasticSearchable
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
         ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_elastic_condition(m) }
       end
+      # percolate this object to see what registered searches match
+      # can be done on transient/non-persisted objects!
+      # can be done automatically when indexing using :percolate => true config option
+      # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate
         response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.indexed_json_document}.to_json
         response['matches']
