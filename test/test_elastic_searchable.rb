@@ -22,6 +22,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  def setup
+    delete_index
+  end
   def teardown
     delete_index
   end
@@ -242,9 +245,8 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Book < ActiveRecord::Base
-    elastic_searchable :percolate => true
-    after_index :indexed
-    def indexed(percolated)
+    elastic_searchable :percolate => :on_percolated
+    def on_percolated(percolated)
       @percolated = percolated
     end
     def percolated
@@ -258,7 +260,6 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       context "when index has configured percolation" do
         setup do
-          ElasticSearchable.debug_output
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
           ElasticSearchable.request :post, '/_percolator/_refresh'
         end
