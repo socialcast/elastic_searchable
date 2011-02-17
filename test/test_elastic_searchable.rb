@@ -108,6 +108,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
+      Post.refresh_index
     end
 
     context 'searching for results' do
@@ -263,7 +264,6 @@ class TestElasticSearchable < Test::Unit::TestCase
         end
         context 'creating an object that matches the percolation' do
           setup do
-            sleep 2
             @book = Book.create :title => "foo"
           end
           should 'return percolated matches in the callback' do
