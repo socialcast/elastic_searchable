@@ -23,28 +23,4 @@ class Test::Unit::TestCase
   def delete_index
     ElasticSearchable.delete '/elastic_searchable' rescue nil
   end
-  def rebuild_index(*models)
-    models.each do |model|
-      begin
-        model.delete_index
-      rescue ElasticSearchable::ElasticError
-        # no index
-      end
-    end
-
-    models.each do |model|
-      begin
-        model.create_index
-      rescue ElasticSearchable::ElasticError
-        # index already exists
-      end
-    end
-
-    models.each do |model|
-      model.find_each do |record|
-        record.index_in_elastic_search if record.should_index?
-      end
-      model.refresh_index
-    end
-  end
 end

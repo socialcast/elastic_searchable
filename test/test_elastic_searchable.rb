@@ -105,10 +105,9 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'with index containing multiple results' do
     setup do
-      Post.delete_all
+      Post.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
-      rebuild_index Post
     end
 
     context 'searching for results' do
@@ -116,7 +115,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         @results = Post.search 'first'
       end
       should 'find created object' do
-        assert_equal @first_post, @results.first
+        assert_contains @results, @first_post
       end
       should 'be paginated' do
         assert_equal 1, @results.current_page
@@ -130,8 +129,11 @@ class TestElasticSearchable < Test::Unit::TestCase
       setup do
         @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'id'
       end
-      should 'find object' do
-        assert_equal @second_post, @results.first
+      should 'not find objects from first page' do
+        assert_does_not_contain @results, @first_post
+      end
+      should 'find second object' do
+        assert_contains @results, @second_post
       end
       should 'be paginated' do
         assert_equal 2, @results.current_page
@@ -147,6 +149,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first
+        assert_equal @first_post, @results.last
       end
     end
 
@@ -169,21 +172,17 @@ class TestElasticSearchable < Test::Unit::TestCase
       false
     end
   end
-  context 'activerecord class with :if=>proc' do
+  context 'activerecord class with optional :if=>proc configuration' do
     context 'when creating new instance' do
       setup do
         Blog.any_instance.expects(:index_in_elastic_search).never
-        Blog.create! :title => 'foo'
+        @blog = Blog.create! :title => 'foo'
       end
       should 'not index record' do end #see expectations
-    end
-    context 'rebuilding new index' do
-      setup do
-        Blog.any_instance.expects(:index_in_elastic_search).never
-        Blog.create! :title => 'foo'
-        rebuild_index Blog
+      should 'not be found in elasticsearch' do
+        @request = ElasticSearchable.get "/elastic_searchable/blogs/#{@blog.id}"
+        assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
       end
-      should 'not index record' do end #see expectations
     end
   end
 
@@ -212,12 +211,12 @@ class TestElasticSearchable < Test::Unit::TestCase
   class Friend < ActiveRecord::Base
     elastic_searchable :json => {:only => [:name]}
   end
-  context 'activerecord class with :json=>{}' do
+  context 'activerecord class with optiona :json config' do
     context 'creating index' do
       setup do
-        Friend.delete_all
+        Friend.create_index
         @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
-        rebuild_index Friend
+        Friend.refresh_index
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.request :get, "/elastic_searchable/friends/#{@friend.id}"
@@ -264,6 +263,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         end
         context 'creating an object that matches the percolation' do
           setup do
+            sleep 2
             @book = Book.create :title => "foo"
           end
           should 'return percolated matches in the callback' do
