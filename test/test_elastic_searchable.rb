@@ -22,6 +22,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  def teardown
+    delete_index
+  end
   class Post < ActiveRecord::Base
     elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] }
     after_index :indexed
@@ -59,44 +62,33 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'with empty index' do
+  context 'Post.create_index' do
     setup do
-      begin
-        ElasticSearchable.delete '/elastic_searchable'
-      rescue ElasticSearchable::ElasticError
-        #already deleted
-      end
+      Post.create_index
+      @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
     end
-    context 'Post.create_index' do
-      setup do
-        Post.create_index
-        @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
-      end
-      should 'have created index' do
-        assert @status['ok']
-      end
-      should 'have used custom index_options' do
-        expected = {
-          "index.number_of_replicas" => "1",
-          "index.number_of_shards" => "5",
-          "index.analysis.analyzer.default.tokenizer" => "standard",
-          "index.analysis.analyzer.default.filter.0" => "standard",
-          "index.analysis.analyzer.default.filter.1" => "lowercase",
-          "index.analysis.analyzer.default.filter.2" => "porterStem"
-        }
-        assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
-      end
+    should 'have created index' do
+      assert @status['ok']
+    end
+    should 'have used custom index_options' do
+      expected = {
+        "index.number_of_replicas" => "1",
+        "index.number_of_shards" => "5",
+        "index.analysis.analyzer.default.tokenizer" => "standard",
+        "index.analysis.analyzer.default.filter.0" => "standard",
+        "index.analysis.analyzer.default.filter.1" => "lowercase",
+        "index.analysis.analyzer.default.filter.2" => "porterStem"
+      }
+      assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
     end
   end
 
   context 'deleting object that does not exist in search index' do
-    setup do
-      Post.delete_index
+    should 'raise error' do
       assert_raises ElasticSearchable::ElasticError do
         Post.delete_id_from_index 123
       end
     end
-    should 'raise error' do end
   end
 
   context 'Post.create' do
@@ -201,7 +193,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'activerecord class with :mapping=>{}' do
     context 'creating index' do
       setup do
-        User.update_index_mapping
+        User.create_index
         @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
       end
       should 'have set mapping' do
@@ -262,16 +254,13 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'Book class with percolate=true' do
     context 'with created index' do
       setup do
-        begin
-          Book.create_index
-        rescue => e
-          #already exists
-        end
+        Book.create_index
       end
       context "when index has configured percolation" do
         setup do
           #http://www.elasticsearch.org/blog/2011/02/08/percolator.html
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
+          ElasticSearchable.request :post, '/_percolator/_refresh'
         end
         context 'creating an object that matches the percolation' do
           setup do
@@ -279,6 +268,14 @@ class TestElasticSearchable < Test::Unit::TestCase
           end
           should 'return percolated matches in the callback' do
             assert_equal ['myfilter'], @book.percolated
+          end
+        end
+        context 'percolating a non-persisted object' do
+          setup do
+            @matches = Book.new(:title => 'foo').percolate
+          end
+          should 'return percolated matches' do
+            assert_equal ['myfilter'], @matches
           end
         end
       end

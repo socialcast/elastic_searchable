@@ -20,6 +20,9 @@ ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
 ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'sqlite'])
 
 class Test::Unit::TestCase
+  def delete_index
+    ElasticSearchable.delete '/elastic_searchable' rescue nil
+  end
   def rebuild_index(*models)
     models.each do |model|
       begin

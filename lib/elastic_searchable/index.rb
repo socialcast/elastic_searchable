@@ -67,7 +67,9 @@ module ElasticSearchable
       # fire after_index callbacks after operation is complete 
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def index_in_elastic_search(lifecycle = nil)
-        ElasticSearchable.request :put, self.class.index_type_path(self.id), :body => self.indexed_json_document.to_json
+        query = {}
+        query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
+        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.indexed_json_document.to_json
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
@@ -79,6 +81,10 @@ module ElasticSearchable
       def should_index?
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
         ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_elastic_condition(m) }
+      end
+      def percolate
+        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.indexed_json_document}.to_json
+        response['matches']
       end
 
       private
