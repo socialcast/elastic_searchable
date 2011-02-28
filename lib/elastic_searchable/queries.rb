@@ -5,9 +5,9 @@ module ElasticSearchable
     PER_PAGE_DEFAULT = 20
 
     # search returns a will_paginate collection of ActiveRecord objects for the search results
-    # options:
-    # :per_page/:limit
-    # :page/:offset
+    # supported options:
+    # :page - page of results to search for
+    # :per_page - number of results per page
     #
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
