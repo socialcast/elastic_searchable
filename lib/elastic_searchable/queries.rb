@@ -2,6 +2,8 @@ require 'will_paginate/collection'
 
 module ElasticSearchable
   module Queries
+    PER_PAGE_DEFAULT = 20
+
     # search returns a will_paginate collection of ActiveRecord objects for the search results
     # options:
     # :per_page/:limit
@@ -12,7 +14,7 @@ module ElasticSearchable
       page = (options.delete(:page) || 1).to_i
       options[:fields] ||= '_id'
       options[:q] ||= query
-      options[:size] ||= (options.delete(:per_page) || 20)
+      options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
 
       response = ElasticSearchable.request :get, index_type_path('_search'), :query => options
@@ -23,6 +25,12 @@ module ElasticSearchable
       page = WillPaginate::Collection.new(page, options[:size], hits['total'])
       page.replace results
       page
+    end
+
+    private
+    def per_page_for_search(options = {})
+      per_page = options.delete(:per_page) || (self.respond_to?(:per_page) ? self.per_page : nil) || ElasticSearchable::Queries::PER_PAGE_DEFAULT
+      self.respond_to?(:max_per_page) ? [per_page.to_i, self.max_per_page].min : per_page
     end
   end
 end

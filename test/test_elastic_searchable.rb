@@ -20,6 +20,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     create_table :books, :force => true do |t|
       t.column :title, :string
     end
+    create_table :max_page_size_classes, :force => true do |t|
+      t.column :name, :string
+    end
   end
 
   def setup
@@ -279,6 +282,35 @@ class TestElasticSearchable < Test::Unit::TestCase
             assert_equal ['myfilter'], @matches
           end
         end
+      end
+    end
+  end
+
+  class MaxPageSizeClass < ActiveRecord::Base
+    elastic_searchable
+    def self.max_per_page
+      1
+    end
+  end
+  context 'with 2 MaxPageSizeClass instances' do
+    setup do
+      MaxPageSizeClass.create_index
+      @first = MaxPageSizeClass.create! :name => 'foo one'
+      @second = MaxPageSizeClass.create! :name => 'foo two'
+      MaxPageSizeClass.refresh_index
+    end
+    context 'MaxPageSizeClass.search with default options' do
+      setup do
+        @results = MaxPageSizeClass.search 'foo'
+      end
+      should 'have one per page' do
+        assert_equal 1, @results.per_page
+      end
+      should 'return one instance' do
+        assert_equal 1, @results.length
+      end
+      should 'have second page' do
+        assert_equal 2, @results.total_entries
       end
     end
   end
