@@ -75,7 +75,7 @@ module ElasticSearchable
               actions << {:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}}.to_json
               actions << doc
             rescue => e
-              puts "Unable to index record: #{record.inspect} [#{e.message}]"
+              puts "Unable to bulk index record: #{record.inspect} [#{e.message}]"
             end
           end
           ElasticSearchable.request :put, '/_bulk', :body => "\n#{actions.join("\n")}\n"
