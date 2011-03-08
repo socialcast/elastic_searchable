@@ -109,6 +109,25 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'with empty index when multiple database records' do
+    setup do
+      Post.create_index
+      @first_post = Post.create :title => 'foo', :body => "first bar"
+      @second_post = Post.create :title => 'foo', :body => "second bar"
+      Post.clean_index
+    end
+    context 'Post.reindex' do
+      setup do
+        Post.reindex
+        Post.refresh_index
+      end
+      should 'have reindexed both records' do
+        ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
+        ElasticSearchable.request :get, "/elastic_searchable/posts/#{@second_post.id}"
+      end
+    end
+  end
+
   context 'with index containing multiple results' do
     setup do
       Post.create_index

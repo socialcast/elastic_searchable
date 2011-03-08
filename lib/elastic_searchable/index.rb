@@ -53,6 +53,34 @@ module ElasticSearchable
         ['', index_name, action].compact.join('/')
       end
 
+      # reindex all records using bulk api
+      # options:
+      #   :scope - scope the find_in_batches to only a subset of records
+      #   :batch - counter to start indexing at
+      #   :include - passed to find_in_batches to hydrate objects
+      # see http://www.elasticsearch.org/guide/reference/api/bulk.html
+      def reindex(options = {})
+        batch = options.delete(:batch) || 1
+        options[:batch_size] ||= 1000
+        options[:start] ||= (batch - 1) * options[:batch_size]
+        scope = options.delete(:scope) || self
+        scope.find_in_batches(options) do |records|
+          puts "reindexing batch ##{batch}..."
+          batch += 1
+          actions = []
+          records.each do |record|
+            begin
+              doc = record.indexed_json_document.to_json
+              actions << {:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}}.to_json
+              actions << doc
+            rescue => e
+              puts "Unable to index record: #{record.inspect} [#{e.message}]"
+            end
+          end
+          ElasticSearchable.request :put, '/_bulk', :body => "\n#{actions.join("\n")}\n"
+        end
+      end
+
       private
       def index_name
         self.elastic_options[:index] || ElasticSearchable.default_index
