@@ -201,7 +201,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'activerecord class with optional :if=>proc configuration' do
     context 'when creating new instance' do
       setup do
-        Blog.any_instance.expects(:index_in_elastic_search).never
+        Blog.any_instance.expects(:reindex).never
         @blog = Blog.create! :title => 'foo'
       end
       should 'not index record' do end #see expectations

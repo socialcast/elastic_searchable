@@ -69,8 +69,9 @@ module ElasticSearchable
           batch += 1
           actions = []
           records.each do |record|
+            next unless record.should_index?
             begin
-              doc = record.indexed_json_document.to_json
+              doc = record.as_json_for_index.to_json
               actions << {:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}}.to_json
               actions << doc
             rescue => e
@@ -91,13 +92,13 @@ module ElasticSearchable
     end
 
     module InstanceMethods
-      # index the object in elasticsearch
-      # fire after_index callbacks after operation is complete 
+      # reindex the object in elasticsearch
+      # fires after_index callbacks after operation is complete 
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
-      def index_in_elastic_search(lifecycle = nil)
+      def reindex(lifecycle = nil)
         query = {}
         query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.indexed_json_document.to_json
+        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
@@ -108,7 +109,7 @@ module ElasticSearchable
         end
       end
       # document to index in elasticsearch
-      def indexed_json_document
+      def as_json_for_index
         self.as_json self.class.elastic_options[:json]
       end
       def should_index?
@@ -120,7 +121,7 @@ module ElasticSearchable
       # can be done automatically when indexing using :percolate => true config option
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate
-        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.indexed_json_document}.to_json
+        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.as_json_for_index}.to_json
         response['matches']
       end
 

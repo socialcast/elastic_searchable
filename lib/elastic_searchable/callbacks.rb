@@ -12,10 +12,10 @@ module ElasticSearchable
         self.class.delete_id_from_index_backgrounded self.id
       end
       def update_index_on_create
-        index_in_elastic_search :create
+        reindex :create
       end
       def update_index_on_update
-        index_in_elastic_search :update
+        reindex :update
       end
     end
   end
