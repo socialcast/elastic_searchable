@@ -14,16 +14,17 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "elastic_searchable"
   
-  s.add_runtime_dependency(%q<activerecord>, ["~> 2.3.5"])
+  s.add_runtime_dependency(%q<activerecord>, ["~> 3.0.0"])
   s.add_runtime_dependency(%q<httparty>, ["~> 0.6.0"])
   s.add_runtime_dependency(%q<backgrounded>, ["~> 0.7.0"])
   s.add_runtime_dependency(%q<will_paginate>, ["~> 2.3.15"])
-  s.add_runtime_dependency(%q<larsklevan-after_commit>, ["~> 1.0.5"])
   s.add_development_dependency(%q<shoulda>, [">= 0"])
   s.add_development_dependency(%q<mocha>, [">= 0"])
-  s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
+  s.add_development_dependency(%q<bundler>, [">= 0"])
   s.add_development_dependency(%q<rcov>, [">= 0"])
   s.add_development_dependency(%q<sqlite3-ruby>, ["~> 1.3.2"])
+  s.add_development_dependency(%q<ruby-debug>, [">= 0"])
+
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

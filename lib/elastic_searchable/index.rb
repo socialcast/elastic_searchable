@@ -100,8 +100,8 @@ module ElasticSearchable
         query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
 
-        self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
-        self.run_callbacks(:after_index)
+        self.run_callbacks("index_on_#{lifecycle}".to_sym) if lifecycle
+        self.run_callbacks(:index)
 
         if percolate_callback = self.class.elastic_options[:percolate]
           matches = response['matches']

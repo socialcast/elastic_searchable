@@ -1,5 +1,4 @@
 require 'active_record'
-require 'after_commit'
 require 'backgrounded'
 require 'elastic_searchable/queries'
 require 'elastic_searchable/callbacks'
@@ -37,10 +36,10 @@ module ElasticSearchable
           backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
         end
 
-        define_callbacks :after_index_on_create, :after_index_on_update, :after_index
-        after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?
-        after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?
-        after_commit_on_destroy :delete_from_index
+        define_model_callbacks :index, :index_on_create, :index_on_update, :only => :after
+        after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
+        after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
+        after_commit :delete_from_index, :on => :destroy
       end
     end
   end
