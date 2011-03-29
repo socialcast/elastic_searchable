@@ -110,7 +110,11 @@ module ElasticSearchable
       end
       # document to index in elasticsearch
       def as_json_for_index
-        self.as_json self.class.elastic_options[:json]
+        original_include_root_in_json = ::ActiveRecord::Base.include_root_in_json
+        ::ActiveRecord::Base.include_root_in_json = false
+        return self.as_json self.class.elastic_options[:json]
+      ensure
+        ::ActiveRecord::Base.include_root_in_json = original_include_root_in_json
       end
       def should_index?
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
