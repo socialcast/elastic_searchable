@@ -79,7 +79,11 @@ module ElasticSearchable
               puts "Unable to bulk index record: #{record.inspect} [#{e.message}]"
             end
           end
-          ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
+          begin
+            ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
+          rescue ElasticError => e
+            puts "Error indexing batch ##{batch}: #{e.message}"
+          end
         end
       end
 
