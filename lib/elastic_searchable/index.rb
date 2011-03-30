@@ -109,7 +109,7 @@ module ElasticSearchable
         @index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
 
-        @percolations = response['matches']
+        @percolations = response['matches'] || []
         _run_percolate_callbacks if @percolations.any?
       end
       # document to index in elasticsearch
