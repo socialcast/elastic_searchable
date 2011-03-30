@@ -60,6 +60,7 @@ module ElasticSearchable
       #   :include - passed to find_in_batches to hydrate objects
       # see http://www.elasticsearch.org/guide/reference/api/bulk.html
       def reindex(options = {})
+        self.update_index_mapping
         batch = options.delete(:batch) || 1
         options[:batch_size] ||= 1000
         options[:start] ||= (batch - 1) * options[:batch_size]
