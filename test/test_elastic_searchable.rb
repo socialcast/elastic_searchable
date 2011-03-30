@@ -116,6 +116,10 @@ class TestElasticSearchable < Test::Unit::TestCase
       @second_post = Post.create :title => 'foo', :body => "second bar"
       Post.clean_index
     end
+    should 'not raise error if error occurs reindexing model' do
+      ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
+      Post.reindex
+    end
     context 'Post.reindex' do
       setup do
         Post.reindex

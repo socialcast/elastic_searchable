@@ -60,12 +60,13 @@ module ElasticSearchable
       #   :include - passed to find_in_batches to hydrate objects
       # see http://www.elasticsearch.org/guide/reference/api/bulk.html
       def reindex(options = {})
+        self.update_index_mapping
         batch = options.delete(:batch) || 1
         options[:batch_size] ||= 1000
         options[:start] ||= (batch - 1) * options[:batch_size]
         scope = options.delete(:scope) || self
         scope.find_in_batches(options) do |records|
-          puts "reindexing batch ##{batch}..."
+          ElasticSearchable.logger.info "reindexing batch ##{batch}..."
           batch += 1
           actions = []
           records.each do |record|
@@ -75,10 +76,15 @@ module ElasticSearchable
               actions << {:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}}.to_json
               actions << doc
             rescue => e
-              puts "Unable to bulk index record: #{record.inspect} [#{e.message}]"
+              ElasticSearchable.logger.warn "Unable to bulk index record: #{record.inspect} [#{e.message}]"
             end
           end
-          ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
+          begin
+            ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
+          rescue ElasticError => e
+            ElasticSearchable.logger.warn "Error indexing batch ##{batch}: #{e.message}"
+            ElasticSearchable.logger.warn e
+          end
         end
       end
 
