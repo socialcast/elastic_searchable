@@ -24,10 +24,13 @@ module ElasticSearchable
       #
       # Available callbacks:
       # after_index
+      # called after the object is indexed in elasticsearch
       # (optional) :on => :create/:update can be used to only fire callback when object is created or updated
       #
       # after_percolate
-      # use percolations instance method from within callback to inspect what percolations were returned
+      # called after object is indexed in elasticsearch
+      # only fires if the update index call returns a non-empty set of registered percolations
+      # use the "percolations" instance method from within callback to inspect what percolations were returned
       def elastic_searchable(options = {})
         options.symbolize_keys!
         self.elastic_options = options
