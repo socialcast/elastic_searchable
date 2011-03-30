@@ -34,7 +34,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   class Post < ActiveRecord::Base
     elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] }
     after_index :indexed
-    after_index_on_create :indexed_on_create
+    after_index :indexed_on_create, :on => :create
     def indexed
       @indexed = true
     end

@@ -36,10 +36,19 @@ module ElasticSearchable
           backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
         end
 
-        define_model_callbacks :index, :index_on_create, :index_on_update, :only => :after
+        define_model_callbacks :index, :percolate, :only => :after
         after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
         after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
         after_commit :delete_from_index, :on => :destroy
+      end
+      # see ActiveRecord::Transactions::ClassMethods#after_commit for example
+      def after_index(*args, &block)
+        options = args.last
+        if options.is_a?(Hash) && options[:on]
+          options[:if] = Array.wrap(options[:if])
+          options[:if] << "@index_lifecycle == :#{options[:on]}"
+        end
+        set_callback(:index, :after, *args, &block)
       end
     end
   end
