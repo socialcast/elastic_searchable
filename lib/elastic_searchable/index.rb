@@ -103,16 +103,14 @@ module ElasticSearchable
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def reindex(lifecycle = nil)
         query = {}
-        query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
+        query.merge! :percolate => "*" if _percolate_callbacks.any?
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
 
         @index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
 
-        if self.class.elastic_options[:percolate]
-          @percolations = response['matches']
-          _run_percolate_callbacks if @percolations.any?
-        end
+        @percolations = response['matches']
+        _run_percolate_callbacks if @percolations.any?
       end
       # document to index in elasticsearch
       def as_json_for_index

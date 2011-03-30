@@ -271,7 +271,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Book < ActiveRecord::Base
-    elastic_searchable :percolate => :true
+    elastic_searchable
     after_percolate :on_percolated
     def on_percolated
       @percolated = percolations
@@ -280,7 +280,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       @percolated
     end
   end
-  context 'Book class with percolate=true' do
+  context 'Book class with after_percolate callback' do
     context 'with created index' do
       setup do
         Book.create_index
