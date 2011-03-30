@@ -103,9 +103,9 @@ module ElasticSearchable
         @index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
 
-        if percolate_callback = self.class.elastic_options[:percolate]
-          matches = response['matches']
-          self.send percolate_callback, matches if matches.any?
+        if self.class.elastic_options[:percolate]
+          @percolations = response['matches']
+          _run_percolate_callbacks if @percolations.any?
         end
       end
       # document to index in elasticsearch

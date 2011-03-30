@@ -267,9 +267,10 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Book < ActiveRecord::Base
-    elastic_searchable :percolate => :on_percolated
-    def on_percolated(percolated)
-      @percolated = percolated
+    elastic_searchable :percolate => :true
+    after_percolate :on_percolated
+    def on_percolated
+      @percolated = percolations
     end
     def percolated
       @percolated
@@ -284,6 +285,13 @@ class TestElasticSearchable < Test::Unit::TestCase
         setup do
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
           ElasticSearchable.request :post, '/_percolator/_refresh'
+        end
+        context 'creating an object that does not match the percolation' do
+          setup do
+            Book.any_instance.expects(:on_percolated).never
+            @book = Book.create! :title => 'bar'
+          end
+          should 'not percolate the record' do end #see expectations
         end
         context 'creating an object that matches the percolation' do
           setup do

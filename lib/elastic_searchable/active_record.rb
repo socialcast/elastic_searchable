@@ -21,6 +21,13 @@ module ElasticSearchable
       # :if (optional) reference symbol/proc condition to only index when condition is true 
       # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
       # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
+      #
+      # Available callbacks:
+      # after_index
+      # (optional) :on => :create/:update can be used to only fire callback when object is created or updated
+      #
+      # after_percolate
+      # use percolations instance method from within callback to inspect what percolations were returned
       def elastic_searchable(options = {})
         options.symbolize_keys!
         self.elastic_options = options
@@ -36,11 +43,13 @@ module ElasticSearchable
           backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
         end
 
+        attr_accessor :percolations
         define_model_callbacks :index, :percolate, :only => :after
         after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
         after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
         after_commit :delete_from_index, :on => :destroy
       end
+      # override default after_index callback definition to support :on option
       # see ActiveRecord::Transactions::ClassMethods#after_commit for example
       def after_index(*args, &block)
         options = args.last
