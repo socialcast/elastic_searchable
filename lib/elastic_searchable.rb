@@ -1,4 +1,5 @@
 require 'httparty'
+require 'logger'
 require 'elastic_searchable/active_record'
 
 module ElasticSearchable
@@ -19,10 +20,18 @@ module ElasticSearchable
       @@default_index || 'elastic_searchable'
     end
 
+    @@logger = Logger.new(STDOUT)
+    @@logger.level = Logger::INFO
+    def logger=(logger)
+      @@logger = logger
+    end
+    def logger
+      @@logger
+    end
     #perform a request to the elasticsearch server
     def request(method, url, options = {})
       response = self.send(method, url, options)
-      #puts "elasticsearch request: #{method} #{url} #{" finished in #{response['took']}ms" if response['took']}"
+      logger.debug "elasticsearch request: #{method} #{url} #{"took #{response['took']}ms" if response['took']}"
       validate_response response
       response
     end
