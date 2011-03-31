@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 module ElasticSearchable
   module Indexing
     module ClassMethods
@@ -54,20 +56,20 @@ module ElasticSearchable
       end
 
       # reindex all records using bulk api
-      # options:
-      #   :scope - scope the find_in_batches to only a subset of records
-      #   :batch - counter to start indexing at
-      #   :include - passed to find_in_batches to hydrate objects
       # see http://www.elasticsearch.org/guide/reference/api/bulk.html
+      # options:
+      #   :scope - scope to use for looking up records to reindex. defaults to self (all)
+      #   :page - page/batch to begin indexing at. defaults to 1
+      #   :per_page - number of records to index per batch. defaults to 1000
       def reindex(options = {})
         self.update_index_mapping
-        batch = options.delete(:batch) || 1
-        options[:batch_size] ||= 1000
-        options[:start] ||= (batch - 1) * options[:batch_size]
+        options.reverse_merge! :page => 1, :per_page => 1000, :total_entries => 1
         scope = options.delete(:scope) || self
-        scope.find_in_batches(options) do |records|
-          ElasticSearchable.logger.info "reindexing batch ##{batch}..."
-          batch += 1
+
+        records = scope.paginate(options)
+        while records.any? do
+          ElasticSearchable.logger.info "reindexing batch ##{records.current_page}..."
+
           actions = []
           records.each do |record|
             next unless record.should_index?
@@ -82,9 +84,12 @@ module ElasticSearchable
           begin
             ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
           rescue ElasticError => e
-            ElasticSearchable.logger.warn "Error indexing batch ##{batch}: #{e.message}"
+            ElasticSearchable.logger.warn "Error indexing batch ##{options[:page]}: #{e.message}"
             ElasticSearchable.logger.warn e
           end
+
+          options.merge! :page => (options[:page] + 1)
+          records = scope.paginate(options)
         end
       end
 

@@ -6,7 +6,7 @@ require 'elastic_searchable/callbacks'
 require 'elastic_searchable/index'
 
 module ElasticSearchable
-  module ActiveRecord
+  module ActiveRecordExtensions
     def self.included(base)
       base.send :extend, ClassMethods
     end

@@ -1,6 +1,6 @@
 require 'httparty'
 require 'logger'
-require 'elastic_searchable/active_record'
+require 'elastic_searchable/active_record_extensions'
 
 module ElasticSearchable
   include HTTParty
@@ -46,4 +46,4 @@ module ElasticSearchable
   end
 end
 
-ActiveRecord::Base.send(:include, ElasticSearchable::ActiveRecord)
+ActiveRecord::Base.send(:include, ElasticSearchable::ActiveRecordExtensions)
