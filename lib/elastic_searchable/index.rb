@@ -61,6 +61,8 @@ module ElasticSearchable
       #   :scope - scope to use for looking up records to reindex. defaults to self (all)
       #   :page - page/batch to begin indexing at. defaults to 1
       #   :per_page - number of records to index per batch. defaults to 1000
+      #
+      # TODO: move this to AREL relation to remove the options scope param
       def reindex(options = {})
         self.update_index_mapping
         options.reverse_merge! :page => 1, :per_page => 1000, :total_entries => 1
