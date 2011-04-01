@@ -1,5 +1,4 @@
 require 'active_record'
-require 'after_commit'
 require 'backgrounded'
 require 'elastic_searchable/queries'
 require 'elastic_searchable/callbacks'
