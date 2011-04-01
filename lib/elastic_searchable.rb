@@ -46,4 +46,3 @@ module ElasticSearchable
   end
 end
 
-ActiveRecord::Base.send(:extend, ElasticSearchable::ActiveRecordExtensions)
