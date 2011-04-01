@@ -1,30 +1,6 @@
 require File.join(File.dirname(__FILE__), 'helper')
 
 class TestElasticSearchable < Test::Unit::TestCase
-  ActiveRecord::Schema.define(:version => 1) do
-    create_table :posts, :force => true do |t|
-      t.column :title, :string
-      t.column :body, :string
-    end
-    create_table :blogs, :force => true do |t|
-      t.column :title, :string
-      t.column :body, :string
-    end
-    create_table :users, :force => true do |t|
-      t.column :name, :string
-    end
-    create_table :friends, :force => true do |t|
-      t.column :name, :string
-      t.column :favorite_color, :string
-    end
-    create_table :books, :force => true do |t|
-      t.column :title, :string
-    end
-    create_table :max_page_size_classes, :force => true do |t|
-      t.column :name, :string
-    end
-  end
-
   def setup
     delete_index
   end
@@ -122,12 +98,14 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     context 'Post.reindex' do
       setup do
-        Post.reindex
+        Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
         Post.refresh_index
       end
       should 'have reindexed both records' do
-        ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
-        ElasticSearchable.request :get, "/elastic_searchable/posts/#{@second_post.id}"
+        assert_nothing_raised do
+          ElasticSearchable.request :get, "/elastic_searchable/posts/#{@first_post.id}"
+          ElasticSearchable.request :get, "/elastic_searchable/posts/#{@second_post.id}"
+        end
       end
     end
   end
@@ -149,7 +127,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'be paginated' do
         assert_equal 1, @results.current_page
-        assert_equal 20, @results.per_page
+        assert_equal Post.per_page, @results.per_page
         assert_nil @results.previous_page
         assert_nil @results.next_page
       end
