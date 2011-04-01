@@ -28,7 +28,10 @@ module ElasticSearchable
     def logger
       @@logger
     end
-    #perform a request to the elasticsearch server
+    # perform a request to the elasticsearch server
+    # configuration:
+    # ElasticSearchable.base_uri 'host:port' controls where to send request to
+    # ElasticSearchable.debug_output outputs all http traffic to console
     def request(method, url, options = {})
       response = self.send(method, url, options)
       logger.debug "elasticsearch request: #{method} #{url} #{"took #{response['took']}ms" if response['took']}"
