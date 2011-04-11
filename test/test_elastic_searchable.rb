@@ -4,11 +4,10 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  # ElasticSearchable.debug_output
+  ElasticSearchable.debug_output
 
   class Post < ActiveRecord::Base
-    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] },
-      :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
+    elastic_searchable
     after_index :indexed
     after_index_on_create :indexed_on_create
     def indexed
@@ -52,28 +51,6 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     should 'have created index' do
       assert @status['ok']
-    end
-    should 'have used custom index_options' do
-      expected = {
-        "index.number_of_replicas" => "1",
-        "index.number_of_shards" => "5",
-        "index.analysis.analyzer.default.tokenizer" => "standard",
-        "index.analysis.analyzer.default.filter.0" => "standard",
-        "index.analysis.analyzer.default.filter.1" => "lowercase",
-        "index.analysis.analyzer.default.filter.2" => "porterStem"
-      }
-      assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
-    end
-    should 'have used custom mapping' do
-      @mapping = ElasticSearchable.request :get, '/elastic_searchable/posts/_mapping'
-      expected = {
-        'posts' => {
-          "properties" => {
-            "name"=> {"type"=>"string", "index"=>"not_analyzed"}
-          }
-        }
-      }
-      assert_equal expected, @mapping['elastic_searchable'], @mapping.inspect
     end
   end
 
@@ -207,15 +184,28 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class User < ActiveRecord::Base
-    elastic_searchable :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
+    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] },
+      :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
   end
-  context 'activerecord class with :mapping=>{}' do
+  context 'activerecord class with :index_options and :mapping' do
     context 'creating index' do
       setup do
         User.create_index
-        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
+      end
+      should 'have used custom index_options' do
+        @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
+        expected = {
+          "index.number_of_replicas" => "1",
+          "index.number_of_shards" => "5",
+          "index.analysis.analyzer.default.tokenizer" => "standard",
+          "index.analysis.analyzer.default.filter.0" => "standard",
+          "index.analysis.analyzer.default.filter.1" => "lowercase",
+          "index.analysis.analyzer.default.filter.2" => "porterStem"
+        }
+        assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
       end
       should 'have set mapping' do
+        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
         expected = {
           "users"=> {
             "properties"=> {
