@@ -68,7 +68,7 @@ module ElasticSearchable
 
         records = scope.paginate(options)
         while records.any? do
-          ElasticSearchable.logger.info "reindexing batch ##{records.current_page}..."
+          ElasticSearchable.logger.debug "reindexing batch ##{records.current_page}..."
 
           actions = []
           records.each do |record|
