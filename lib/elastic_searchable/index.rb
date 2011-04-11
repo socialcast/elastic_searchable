@@ -18,11 +18,11 @@ module ElasticSearchable
       end
 
       # create the index
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/create_index/
+      # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
       def create_index
-        options = self.elastic_options[:index_options] ? self.elastic_options[:index_options].to_json : ''
-        ElasticSearchable.request :put, index_path, :body => options
-        self.update_index_mapping
+        options = self.elastic_options[:index_options] || {}
+        options = options.merge(:mappings => {index_type => self.elastic_options[:mapping]}) if self.elastic_options[:mapping]
+        ElasticSearchable.request :put, index_path, :body => options.to_json
       end
 
       # explicitly refresh the index, making all operations performed since the last refresh

@@ -4,11 +4,11 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  def teardown
-    delete_index
-  end
+  # ElasticSearchable.debug_output
+
   class Post < ActiveRecord::Base
-    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] }
+    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] },
+      :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
     after_index :indexed
     after_index_on_create :indexed_on_create
     def indexed
@@ -47,6 +47,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'Post.create_index' do
     setup do
       Post.create_index
+      Post.refresh_index
       @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
     end
     should 'have created index' do
@@ -62,6 +63,17 @@ class TestElasticSearchable < Test::Unit::TestCase
         "index.analysis.analyzer.default.filter.2" => "porterStem"
       }
       assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
+    end
+    should 'have used custom mapping' do
+      @mapping = ElasticSearchable.request :get, '/elastic_searchable/posts/_mapping'
+      expected = {
+        'posts' => {
+          "properties" => {
+            "name"=> {"type"=>"string", "index"=>"not_analyzed"}
+          }
+        }
+      }
+      assert_equal expected, @mapping['elastic_searchable'], @mapping.inspect
     end
   end
 
