@@ -23,7 +23,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       @indexed_on_create
     end
   end
-  context 'Post class with default elastic_searchable config' do
+  context 'activerecord class with default elastic_searchable config' do
     setup do
       @clazz = Post
     end
@@ -35,7 +35,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'ElasticSearchable.request with invalid url' do
+  context 'Model.request with invalid url' do
     should 'raise error' do
       assert_raises ElasticSearchable::ElasticError do
         ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
@@ -43,7 +43,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'Post.create_index' do
+  context 'Model.create_index' do
     setup do
       Post.create_index
       Post.refresh_index
@@ -62,7 +62,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'Post.create' do
+  context 'Model.create' do
     setup do
       @post = Post.create :title => 'foo', :body => "bar"
     end
@@ -85,7 +85,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
       Post.reindex
     end
-    context 'Post.reindex' do
+    context 'Model.reindex' do
       setup do
         Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
         Post.refresh_index

@@ -20,8 +20,9 @@ module ElasticSearchable
       # create the index
       # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
       def create_index
-        options = self.elastic_options[:index_options] || {}
-        options = options.merge(:mappings => {index_type => self.elastic_options[:mapping]}) if self.elastic_options[:mapping]
+        options = {}
+        options.merge! :settings => self.elastic_options[:index_options] if self.elastic_options[:index_options]
+        options.merge! :mappings => {index_type => self.elastic_options[:mapping]} if self.elastic_options[:mapping]
         ElasticSearchable.request :put, index_path, :body => options.to_json
       end
 
