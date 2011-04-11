@@ -4,7 +4,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  ElasticSearchable.debug_output
+  # ElasticSearchable.debug_output
 
   class Post < ActiveRecord::Base
     elastic_searchable
