@@ -4,7 +4,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  # ElasticSearchable.debug_output
+  ElasticSearchable.debug_output
 
   class Post < ActiveRecord::Base
     elastic_searchable
@@ -76,6 +76,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'with empty index when multiple database records' do
     setup do
+      Post.delete_all
       Post.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
