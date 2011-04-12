@@ -221,7 +221,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   class Friend < ActiveRecord::Base
     elastic_searchable :json => {:only => [:name]}
   end
-  context 'activerecord class with optiona :json config' do
+  context 'activerecord class with optional :json config' do
     context 'creating index' do
       setup do
         Friend.create_index
