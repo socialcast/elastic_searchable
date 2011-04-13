@@ -220,19 +220,27 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Friend < ActiveRecord::Base
-    elastic_searchable :json => {:only => [:name]}
+    belongs_to :book
+    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}
   end
   context 'activerecord class with optional :json config' do
     context 'creating index' do
       setup do
         Friend.create_index
-        @friend = Friend.create! :name => 'bob', :favorite_color => 'red'
+        @book = Book.create! :isbn => '123abc', :title => 'another world'
+        @friend = Friend.new :name => 'bob', :favorite_color => 'red'
+        @friend.book = @book
+        @friend.save!
         Friend.refresh_index
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.request :get, "/elastic_searchable/friends/#{@friend.id}"
+        # should not index:
+        # friend.favorite_color
+        # book.isbn
         expected = {
-          "name" => 'bob' #favorite_color should not be indexed
+          "name" => 'bob',
+          'book' => {'title' => 'another world'}
         }
         assert_equal expected, @response['_source'], @response.inspect
       end

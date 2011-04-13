@@ -18,9 +18,11 @@ ActiveRecord::Schema.define(:version => 1) do
   create_table :friends, :force => true do |t|
     t.column :name, :string
     t.column :favorite_color, :string
+    t.belongs_to :book
   end
   create_table :books, :force => true do |t|
     t.column :title, :string
+    t.column :isbn, :string
   end
   create_table :max_page_size_classes, :force => true do |t|
     t.column :name, :string
