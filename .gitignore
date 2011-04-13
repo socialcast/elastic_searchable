@@ -19,6 +19,15 @@ pkg
 test/*.log
 test/*.sqlite3
 
+# For vim:
+*.swp
+
+# For MacOS:
+.DS_Store
+
+# git files
+*.orig
+
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
 # * Create a file at ~/.gitignore
@@ -30,10 +39,6 @@ test/*.sqlite3
 #
 # Not sure what to needs to be ignored for particular editors/OSes? Here's some ideas to get you started. (Remember, remove the leading # of the line)
 #
-# For MacOS:
-#
-#.DS_Store
-#
 # For TextMate
 #*.tmproj
 #tmtags
@@ -42,6 +47,4 @@ test/*.sqlite3
 #*~
 #\#*
 #.\#*
-#
-# For vim:
-#*.swp
+
