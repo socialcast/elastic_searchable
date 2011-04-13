@@ -54,14 +54,6 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'deleting object that does not exist in search index' do
-    should 'raise error' do
-      assert_raises ElasticSearchable::ElasticError do
-        Post.delete_id_from_index 123
-      end
-    end
-  end
-
   context 'Model.create' do
     setup do
       @post = Post.create :title => 'foo', :body => "bar"
@@ -80,11 +72,20 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
-      Post.clean_index
+      Post.delete_index
+      Post.create_index
     end
     should 'not raise error if error occurs reindexing model' do
       ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
-      Post.reindex
+      assert_nothing_raised do
+        Post.reindex
+      end
+    end
+    should 'not raise error if destroying one instance' do
+      Logger.any_instance.expects(:warn)
+      assert_nothing_raised do
+        @first_post.destroy
+      end
     end
     context 'Model.reindex' do
       setup do

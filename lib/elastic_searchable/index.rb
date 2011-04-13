@@ -44,6 +44,8 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/delete/
       def delete_id_from_index(id)
         ElasticSearchable.request :delete, index_type_path(id)
+      rescue ElasticSearchable::ElasticError => e
+        ElasticSearchable.logger.warn e
       end
 
       # helper method to generate elasticsearch url for this object type
