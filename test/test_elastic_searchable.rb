@@ -7,7 +7,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   ElasticSearchable.debug_output
 
   class Post < ActiveRecord::Base
-    elastic_searchable
+    elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     after_index :indexed
     after_index_on_create :indexed_on_create
     def indexed
@@ -165,7 +165,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
 
   class Blog < ActiveRecord::Base
-    elastic_searchable :if => proc {|b| b.should_index? }
+    elastic_searchable :if => proc {|b| b.should_index? }, :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     def should_index?
       false
     end
@@ -185,8 +185,12 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class User < ActiveRecord::Base
-    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] },
-      :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
+    elastic_searchable :index_options => {
+      'number_of_replicas' => 0,
+      'number_of_shards' => 1,
+      "analysis.analyzer.default.tokenizer" => 'standard',
+      "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem']},
+    :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
   end
   context 'activerecord class with :index_options and :mapping' do
     context 'creating index' do
@@ -196,8 +200,8 @@ class TestElasticSearchable < Test::Unit::TestCase
       should 'have used custom index_options' do
         @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
         expected = {
-          "index.number_of_replicas" => "1",
-          "index.number_of_shards" => "5",
+          "index.number_of_replicas" => "0",
+          "index.number_of_shards" => "1",
           "index.analysis.analyzer.default.tokenizer" => "standard",
           "index.analysis.analyzer.default.filter.0" => "standard",
           "index.analysis.analyzer.default.filter.1" => "lowercase",
@@ -221,7 +225,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   class Friend < ActiveRecord::Base
     belongs_to :book
-    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}
+    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}, :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
   end
   context 'activerecord class with optional :json config' do
     context 'creating index' do
@@ -299,7 +303,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class MaxPageSizeClass < ActiveRecord::Base
-    elastic_searchable
+    elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     def self.max_per_page
       1
     end
