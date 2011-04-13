@@ -4,11 +4,10 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  def teardown
-    delete_index
-  end
+  ElasticSearchable.debug_output
+
   class Post < ActiveRecord::Base
-    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] }
+    elastic_searchable
     after_index :indexed
     after_index :indexed_on_create, :on => :create
     def indexed
@@ -24,7 +23,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       @indexed_on_create
     end
   end
-  context 'Post class with default elastic_searchable config' do
+  context 'activerecord class with default elastic_searchable config' do
     setup do
       @clazz = Post
     end
@@ -36,7 +35,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'ElasticSearchable.request with invalid url' do
+  context 'Model.request with invalid url' do
     should 'raise error' do
       assert_raises ElasticSearchable::ElasticError do
         ElasticSearchable.request :get, '/elastic_searchable/foobar/notfound'
@@ -44,24 +43,14 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'Post.create_index' do
+  context 'Model.create_index' do
     setup do
       Post.create_index
+      Post.refresh_index
       @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
     end
     should 'have created index' do
       assert @status['ok']
-    end
-    should 'have used custom index_options' do
-      expected = {
-        "index.number_of_replicas" => "1",
-        "index.number_of_shards" => "5",
-        "index.analysis.analyzer.default.tokenizer" => "standard",
-        "index.analysis.analyzer.default.filter.0" => "standard",
-        "index.analysis.analyzer.default.filter.1" => "lowercase",
-        "index.analysis.analyzer.default.filter.2" => "porterStem"
-      }
-      assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
     end
   end
 
@@ -73,7 +62,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'Post.create' do
+  context 'Model.create' do
     setup do
       @post = Post.create :title => 'foo', :body => "bar"
     end
@@ -87,6 +76,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'with empty index when multiple database records' do
     setup do
+      Post.delete_all
       Post.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
@@ -96,7 +86,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
       Post.reindex
     end
-    context 'Post.reindex' do
+    context 'Model.reindex' do
       setup do
         Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
         Post.refresh_index
@@ -195,15 +185,28 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class User < ActiveRecord::Base
-    elastic_searchable :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
+    elastic_searchable :index_options => { "analysis.analyzer.default.tokenizer" => 'standard', "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem'] },
+      :mapping => {:properties => {:name => {:type => :string, :index => :not_analyzed}}}
   end
-  context 'activerecord class with :mapping=>{}' do
+  context 'activerecord class with :index_options and :mapping' do
     context 'creating index' do
       setup do
         User.create_index
-        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
+      end
+      should 'have used custom index_options' do
+        @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
+        expected = {
+          "index.number_of_replicas" => "1",
+          "index.number_of_shards" => "5",
+          "index.analysis.analyzer.default.tokenizer" => "standard",
+          "index.analysis.analyzer.default.filter.0" => "standard",
+          "index.analysis.analyzer.default.filter.1" => "lowercase",
+          "index.analysis.analyzer.default.filter.2" => "porterStem"
+        }
+        assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
       end
       should 'have set mapping' do
+        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
         expected = {
           "users"=> {
             "properties"=> {
@@ -219,7 +222,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   class Friend < ActiveRecord::Base
     elastic_searchable :json => {:only => [:name]}
   end
-  context 'activerecord class with optiona :json config' do
+  context 'activerecord class with optional :json config' do
     context 'creating index' do
       setup do
         Friend.create_index
