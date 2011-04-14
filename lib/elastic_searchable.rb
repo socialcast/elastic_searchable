@@ -28,6 +28,18 @@ module ElasticSearchable
     def logger
       @@logger
     end
+
+    # execute a block of work without reindexing objects
+    @@offline = false
+    def offline?
+      @@offline
+    end
+    def offline(&block)
+      @@offline = true
+      yield
+    ensure
+      @@offline = false
+    end
     # perform a request to the elasticsearch server
     # configuration:
     # ElasticSearchable.base_uri 'host:port' controls where to send request to

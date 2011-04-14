@@ -140,6 +140,9 @@ module ElasticSearchable
       end
 
       private
+      def elasticsearch_offline?
+        ElasticSearchable.offline?
+      end
       # ripped from activesupport
       def evaluate_elastic_condition(method)
         case method
