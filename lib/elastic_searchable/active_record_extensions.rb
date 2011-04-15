@@ -7,8 +7,6 @@ require 'elastic_searchable/index'
 
 module ElasticSearchable
   module ActiveRecordExtensions
-    attr_accessor :elastic_options
-
     # Valid options:
     # :index (optional) configure index to store data in.  default to ElasticSearchable.default_index
     # :type (optional) configue type to store data in.  default to model table name
@@ -19,6 +17,7 @@ module ElasticSearchable
     # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
     def elastic_searchable(options = {})
       options.symbolize_keys!
+      cattr_accessor :elastic_options
       self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]).push(&:elasticsearch_offline?))
 
       extend ElasticSearchable::Indexing::ClassMethods

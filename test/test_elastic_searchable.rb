@@ -6,6 +6,14 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
   ElasticSearchable.debug_output
 
+  context 'non elastic activerecord class' do
+    class Cat < ActiveRecord::Base
+    end
+    should 'not respond to elastic_options' do
+      assert !Cat.respond_to?(:elastic_options)
+    end
+  end
+
   class Post < ActiveRecord::Base
     elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     after_index :indexed
