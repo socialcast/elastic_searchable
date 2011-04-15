@@ -102,7 +102,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'Model.create within ElasticSearchable.offline block' do
     setup do
       Post.any_instance.expects(:update_index_on_create).never
-      ElasticSearchable.with_offline do
+      ElasticSearchable.offline do
         @post = Post.create :title => 'foo', :body => "bar"
       end
     end
