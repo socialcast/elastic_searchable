@@ -132,6 +132,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'not have fired after_index_on_create callback' do
       assert !@post.indexed_on_create?
     end
+    should 'not have fired after_index_on_update callback' do
+      assert !@post.indexed_on_update?
+    end
   end
 
   context 'with empty index when multiple database records' do
