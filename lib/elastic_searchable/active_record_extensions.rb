@@ -46,11 +46,24 @@ module ElasticSearchable
       after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
       after_commit :delete_from_index, :on => :destroy
 
-      extend ElasticSearchable::Callbacks::ClassMethods
       class_eval do
         # retuns list of percolation matches found during indexing
         def percolations
           @percolations || []
+        end
+
+        class << self
+          # override default after_index callback definition to support :on option
+          # see ActiveRecord::Transactions::ClassMethods#after_commit for example
+          def after_index(*args, &block)
+            options = args.last
+            if options.is_a?(Hash) && options[:on]
+              options[:if] = Array.wrap(options[:if])
+              options[:if] << "self.index_lifecycle == :#{options[:on]}"
+            end
+            set_callback(:index, :after, *args, &block)
+          end
+
         end
       end
     end
