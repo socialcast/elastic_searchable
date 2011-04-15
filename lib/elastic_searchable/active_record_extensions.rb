@@ -18,7 +18,7 @@ module ElasticSearchable
     def elastic_searchable(options = {})
       options.symbolize_keys!
       cattr_accessor :elastic_options
-      self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]).push(&:elasticsearch_offline?))
+      self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]).push(ElasticSearchable.offline?))
 
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries

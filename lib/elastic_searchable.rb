@@ -13,7 +13,7 @@ module ElasticSearchable
     attr_accessor :logger, :default_index, :offline
 
     # execute a block of work without reindexing objects
-    def offline(&block)
+    def with_offline(&block)
       offline = true
       yield
     ensure
