@@ -4,7 +4,8 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  ElasticSearchable.debug_output nil
+  ElasticSearchable.debug_output
+  SINGLE_NODE_CLUSTER_CONFIG = {'number_of_replicas' => 0, 'number_of_shards' => 1}
 
   context 'non elastic activerecord class' do
     class Parent < ActiveRecord::Base
@@ -28,7 +29,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Post < ActiveRecord::Base
-    elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
+    elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG
     after_index :indexed
     after_index :indexed_on_create, :on => :create
     after_index :indexed_on_update, :on => :update
@@ -237,7 +238,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
 
   class Blog < ActiveRecord::Base
-    elastic_searchable :if => proc {|b| b.should_index? }, :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
+    elastic_searchable :if => proc {|b| b.should_index? }, :index_options => SINGLE_NODE_CLUSTER_CONFIG
     def should_index?
       false
     end
@@ -297,7 +298,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   class Friend < ActiveRecord::Base
     belongs_to :book
-    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}, :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
+    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}, :index_options => SINGLE_NODE_CLUSTER_CONFIG
   end
   context 'activerecord class with optional :json config' do
     context 'creating index' do
@@ -383,7 +384,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class MaxPageSizeClass < ActiveRecord::Base
-    elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
+    elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG
     def self.max_per_page
       1
     end
