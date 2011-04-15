@@ -3,42 +3,24 @@ require 'logger'
 require 'elastic_searchable/active_record_extensions'
 
 module ElasticSearchable
+  DEFAULT_INDEX = 'elastic_searchable'
   include HTTParty
   format :json
   base_uri 'localhost:9200'
-  #debug_output
 
   class ElasticError < StandardError; end
   class << self
-    # setup the default index to use
-    # one index can hold many object 'types'
-    @@default_index = nil
-    def default_index=(index)
-      @@default_index = index
-    end
-    def default_index
-      @@default_index || 'elastic_searchable'
-    end
-
-    @@logger = Logger.new(STDOUT)
-    @@logger.level = Logger::INFO
-    def logger=(logger)
-      @@logger = logger
-    end
-    def logger
-      @@logger
-    end
+    attr_accessor :logger, :default_index, :offline
 
     # execute a block of work without reindexing objects
-    @@offline = false
-    def offline?
-      @@offline
-    end
     def offline(&block)
-      @@offline = true
+      offline = true
       yield
     ensure
-      @@offline = false
+      offline = false
+    end
+    def offline?
+      !!offline
     end
     # perform a request to the elasticsearch server
     # configuration:
@@ -60,4 +42,12 @@ module ElasticSearchable
     end
   end
 end
+
+# configure default logger to standard out with info log level
+ElasticSearchable.logger = Logger.new STDOUT
+ElasticSearchable.logger.level = Logger::INFO
+
+# configure default index to be elastic_searchable
+# one index can hold many object 'types'
+ElasticSearchable.default_index = ElasticSearchable::DEFAULT_INDEX
 
