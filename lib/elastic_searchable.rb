@@ -14,13 +14,13 @@ module ElasticSearchable
 
     # execute a block of work without reindexing objects
     def with_offline(&block)
-      offline = true
+      @offline = true
       yield
     ensure
-      offline = false
+      @offline = false
     end
     def offline?
-      !!offline
+      !!@offline
     end
     # perform a request to the elasticsearch server
     # configuration:

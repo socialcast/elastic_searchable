@@ -18,7 +18,7 @@ module ElasticSearchable
     def elastic_searchable(options = {})
       options.symbolize_keys!
       cattr_accessor :elastic_options
-      self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]).push(&:elasticsearch_offline?))
+      self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]))
 
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries
@@ -32,9 +32,9 @@ module ElasticSearchable
       end
 
       define_callbacks :after_index_on_create, :after_index_on_update, :after_index
-      after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?
-      after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?
-      after_commit_on_destroy :delete_from_index
+      after_commit_on_create :update_index_on_create_backgrounded, :if => :should_index?, :unless => :elasticsearch_offline?
+      after_commit_on_update :update_index_on_update_backgrounded, :if => :should_index?, :unless => :elasticsearch_offline?
+      after_commit_on_destroy :delete_from_index, :unless => :elasticsearch_offline?
     end
   end
 end
