@@ -37,6 +37,9 @@ class TestElasticSearchable < Test::Unit::TestCase
     def indexed_on_update?
       @indexed_on_update
     end
+    def reset
+      @indexed, @indexed_on_create, @indexed_on_update = false, false, false
+    end
   end
   context 'activerecord class with default elastic_searchable config' do
     setup do
@@ -84,6 +87,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     context 'Model.update' do
       setup do
+        @post.reset
         @post.title = 'baz'
         @post.save
       end
