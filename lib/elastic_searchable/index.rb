@@ -93,8 +93,8 @@ module ElasticSearchable
             ElasticSearchable.logger.warn e
           end
 
-          options.merge! :page => (options[:page] + 1)
-          records = scope.paginate(options)
+          options.merge! :page => records.next_page
+          records = records.next_page ? scope.paginate(options) : []
         end
       end
 
