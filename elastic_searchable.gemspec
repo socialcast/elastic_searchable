@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "elastic_searchable"
   
-  s.add_runtime_dependency(%q<activerecord>, [">= 2.3.11"])
-  s.add_runtime_dependency(%q<will_paginate>, [">= 2.3.0"])
+  s.add_runtime_dependency(%q<activerecord>, [">= 3.0.5"])
+  s.add_runtime_dependency(%q<will_paginate>, [">= 3.0.pre2"])
   s.add_runtime_dependency(%q<httparty>, ["~> 0.6.0"])
   s.add_runtime_dependency(%q<backgrounded>, ["~> 0.7.0"])
   s.add_development_dependency(%q<shoulda>, [">= 0"])
