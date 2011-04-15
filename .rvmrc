@@ -1,0 +1,4 @@
+rvm use ree-1.8.7-2011.03@rails3 -create
+
+# use rails2 gemset for testing as well
+#ree-1.8.7-2011.03@rails2
