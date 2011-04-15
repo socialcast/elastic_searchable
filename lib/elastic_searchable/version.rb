@@ -1,4 +1,4 @@
 module ElasticSearchable
-  VERSION = '0.7.0'
+  VERSION = '1.0.3'
 end
 

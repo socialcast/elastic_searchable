@@ -17,7 +17,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   class Post < ActiveRecord::Base
     elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     after_index :indexed
-    after_index_on_create :indexed_on_create
+    after_index :indexed_on_create, :on => :create
     def indexed
       @indexed = true
     end
@@ -289,15 +289,16 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Book < ActiveRecord::Base
-    elastic_searchable :percolate => :on_percolated
-    def on_percolated(percolated)
-      @percolated = percolated
+    elastic_searchable
+    after_percolate :on_percolated
+    def on_percolated
+      @percolated = percolations
     end
     def percolated
       @percolated
     end
   end
-  context 'Book class with percolate=true' do
+  context 'Book class with after_percolate callback' do
     context 'with created index' do
       setup do
         Book.create_index
@@ -306,6 +307,13 @@ class TestElasticSearchable < Test::Unit::TestCase
         setup do
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :body => {:query => {:query_string => {:query => 'foo' }}}.to_json
           ElasticSearchable.request :post, '/_percolator/_refresh'
+        end
+        context 'creating an object that does not match the percolation' do
+          setup do
+            Book.any_instance.expects(:on_percolated).never
+            @book = Book.create! :title => 'bar'
+          end
+          should 'not percolate the record' do end #see expectations
         end
         context 'creating an object that matches the percolation' do
           setup do

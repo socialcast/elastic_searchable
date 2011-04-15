@@ -64,6 +64,8 @@ module ElasticSearchable
       #   :scope - scope to use for looking up records to reindex. defaults to self (all)
       #   :page - page/batch to begin indexing at. defaults to 1
       #   :per_page - number of records to index per batch. defaults to 1000
+      #
+      # TODO: move this to AREL relation to remove the options scope param
       def reindex(options = {})
         self.update_index_mapping
         options.reverse_merge! :page => 1, :per_page => 1000, :total_entries => 1
@@ -111,20 +113,22 @@ module ElasticSearchable
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def reindex(lifecycle = nil)
         query = {}
-        query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
+        query.merge! :percolate => "*" if _percolate_callbacks.any?
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
 
-        self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
-        self.run_callbacks(:after_index)
+        @index_lifecycle = lifecycle ? lifecycle.to_sym : nil
+        _run_index_callbacks
 
-        if percolate_callback = self.class.elastic_options[:percolate]
-          matches = response['matches']
-          self.send percolate_callback, matches if matches.any?
-        end
+        @percolations = response['matches'] || []
+        _run_percolate_callbacks if @percolations.any?
       end
       # document to index in elasticsearch
       def as_json_for_index
-        self.as_json self.class.elastic_options[:json]
+        original_include_root_in_json = self.class.include_root_in_json
+        self.class.include_root_in_json = false
+        return self.as_json self.class.elastic_options[:json]
+      ensure
+        self.class.include_root_in_json = original_include_root_in_json
       end
       def should_index?
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&

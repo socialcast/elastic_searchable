@@ -29,5 +29,6 @@ ActiveRecord::Schema.define(:version => 1) do
   end
 end
 
-WillPaginate.enable_activerecord
+require 'will_paginate/finders/active_record'
+WillPaginate::Finders::ActiveRecord.enable!
 
