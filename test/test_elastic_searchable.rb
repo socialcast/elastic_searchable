@@ -7,10 +7,23 @@ class TestElasticSearchable < Test::Unit::TestCase
   ElasticSearchable.debug_output nil
 
   context 'non elastic activerecord class' do
-    class Cat < ActiveRecord::Base
+    class Parent < ActiveRecord::Base
+    end
+    setup do
+      @clazz = Parent
     end
     should 'not respond to elastic_options' do
-      assert !Cat.respond_to?(:elastic_options)
+      assert !@clazz.respond_to?(:elastic_options)
+    end
+  end
+  context 'instance of non-elastic_searchable activerecord class' do
+    class Parent < ActiveRecord::Base
+    end
+    setup do
+      @instance = Parent.new
+    end
+    should 'not respond to percolations' do
+      assert !@instance.respond_to?(:percolations)
     end
   end
 
@@ -47,6 +60,10 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     should 'define elastic_options' do
       assert @clazz.elastic_options
+    end
+    should 'respond to :percolations' do
+      assert @clazz.new.respond_to?(:percolations)
+      assert_equal [], @clazz.new.percolations
     end
   end
 

@@ -27,6 +27,15 @@ ActiveRecord::Schema.define(:version => 1) do
   create_table :max_page_size_classes, :force => true do |t|
     t.column :name, :string
   end
+  create_table :parents, :force => true do |t|
+    t.column :name, :string
+    t.column :description, :string
+  end
+  create_table :children, :force => true do |t|
+    t.column :name, :string
+    t.column :description, :string
+    t.belongs_to :parent
+  end
 end
 
 begin

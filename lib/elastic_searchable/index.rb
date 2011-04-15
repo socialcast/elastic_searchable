@@ -116,11 +116,11 @@ module ElasticSearchable
         query.merge! :percolate => "*" if _percolate_callbacks.any?
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
 
-        @index_lifecycle = lifecycle ? lifecycle.to_sym : nil
+        index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
 
-        @percolations = response['matches'] || []
-        _run_percolate_callbacks if @percolations.any?
+        percolations = response['matches'] || []
+        _run_percolate_callbacks if percolations.any?
       end
       # document to index in elasticsearch
       def as_json_for_index
@@ -140,7 +140,8 @@ module ElasticSearchable
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate
         response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.as_json_for_index}.to_json
-        response['matches']
+        percolations = response['matches'] || []
+        percolations
       end
 
       private

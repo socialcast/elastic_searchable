@@ -40,16 +40,19 @@ module ElasticSearchable
         backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
       end
 
+      attr_accessor :index_lifecycle, :percolations
       define_model_callbacks :index, :percolate, :only => :after
       after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
       after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
       after_commit :delete_from_index, :on => :destroy
 
       extend ElasticSearchable::Callbacks::ClassMethods
-    end
-    # retuns list of percolation matches found during indexing
-    def percolations
-      @percolations || []
+      class_eval do
+        # retuns list of percolation matches found during indexing
+        def percolations
+          @percolations || []
+        end
+      end
     end
   end
 end
