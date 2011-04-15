@@ -4,7 +4,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
   end
-  ElasticSearchable.debug_output
+  ElasticSearchable.debug_output nil
 
   context 'non elastic activerecord class' do
     class Cat < ActiveRecord::Base
@@ -18,6 +18,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     elastic_searchable :index_options => {'number_of_replicas' => 0, 'number_of_shards' => 1}
     after_index :indexed
     after_index :indexed_on_create, :on => :create
+    after_index :indexed_on_update, :on => :update
     def indexed
       @indexed = true
     end
@@ -29,6 +30,12 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     def indexed_on_create?
       @indexed_on_create
+    end
+    def indexed_on_update
+      @indexed_on_update = true
+    end
+    def indexed_on_update?
+      @indexed_on_update
     end
   end
   context 'activerecord class with default elastic_searchable config' do
@@ -71,6 +78,24 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     should 'have fired after_index_on_create callback' do
       assert @post.indexed_on_create?
+    end
+    should 'not have fired after_index_on_update callback' do
+      assert !@post.indexed_on_update?
+    end
+    context 'Model.update' do
+      setup do
+        @post.title = 'baz'
+        @post.save
+      end
+      should 'have fired after_index callback' do
+        assert @post.indexed?
+      end
+      should 'not have fired after_index_on_create callback' do
+        assert !@post.indexed_on_create?
+      end
+      should 'have fired after_index_on_update callback' do
+        assert @post.indexed_on_update?
+      end
     end
   end
 
