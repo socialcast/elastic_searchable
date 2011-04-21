@@ -3,6 +3,7 @@
 Integrate the elasticsearch library into Rails.
 
 ## Usage
+
 ```ruby
 class Blog < ActiveRecord::Base
   elastic_searchable
@@ -19,12 +20,14 @@ results = Blog.search 'foo'
 * integrates with will_paginate library for easy pagination of search results
 
 ## Installation
+
 ```ruby
 # Bundler Gemfile
 gem 'elastic_searchable'
 ```
 
 ## Configuration
+
 ```ruby
 # config/initializers/elastic_searchable.rb
 # (optional) customize elasticsearch host
@@ -39,7 +42,10 @@ ElasticSearchable.base_uri = 'server:9200'
 * Add unit tests
 * Submit pull request on github
 
+See CONTRIBUTORS.txt for list of project contributors
+
 ## Copyright
 
-Copyright (c) 2011 Ryan Sonnek. See LICENSE.txt for further details.
+Copyright (c) 2011 Socialcast, Inc. 
+See LICENSE.txt for further details.
 
