@@ -10,6 +10,7 @@ end
 
 results = Blog.search 'foo'
 ```
+
 ## Features
 
 * fast. fast! FAST! 30% faster than rubberband on average.
@@ -18,14 +19,14 @@ results = Blog.search 'foo'
 * integrates with will_paginate library for easy pagination of search results
 
 ## Installation
-Bundler Gemfile
 ```ruby
+# Bundler Gemfile
 gem 'elastic_searchable'
 ```
 
 ## Configuration
-config/initializers/elastic_searchable.rb
 ```ruby
+# config/initializers/elastic_searchable.rb
 # (optional) customize elasticsearch host
 # default is localhost:9200
 ElasticSearchable.base_uri = 'server:9200'
