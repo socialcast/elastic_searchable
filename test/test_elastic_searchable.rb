@@ -172,6 +172,28 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_nil @results.next_page
       end
     end
+    
+    context 'searching for results using a query Hash' do
+      setup do
+        @results = Post.search({
+          :filtered => {
+            :query => {
+              :term => {:title => 'foo'},
+            },
+            :filter => {
+              :or => [
+                {:term => {:body => 'second'}},
+                {:term => {:body => 'third'}}
+              ]
+            }
+          }
+        })
+      end
+      should 'find only the object which ' do
+        assert_does_not_contain @results, @first_post
+        assert_contains @results, @second_post
+      end
+    end
 
     context 'searching for second page using will_paginate params' do
       setup do
@@ -194,6 +216,16 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'sorting search results' do
       setup do
         @results = Post.search 'foo', :sort => 'id:desc'
+      end
+      should 'sort results correctly' do
+        assert_equal @second_post, @results.first
+        assert_equal @first_post, @results.last
+      end
+    end
+    
+    context 'advanced sort options' do
+      setup do
+        @results = Post.search 'foo', :sort => [{:id => 'desc'}]
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first

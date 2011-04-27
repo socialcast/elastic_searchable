@@ -13,11 +13,29 @@ module ElasticSearchable
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
       options[:fields] ||= '_id'
-      options[:q] ||= query
       options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
+      if query.is_a?(Hash)
+        options[:query] = query
+      else
+        options[:query] = {
+          :query_string => {
+            :query => query,
+            :default_operator => options.delete(:default_operator)
+          }
+        }
+      end
+      query = {}
+      case sort = options.delete(:sort)
+      when Array,Hash
+        options[:sort] = sort
+      when String
+        query[:sort] = sort
+      end
 
-      response = ElasticSearchable.request :get, index_type_path('_search'), :query => options
+      body = defined?(Yajl) ? Yajl::Encoder.encode(options) : ActiveSupport::JSON.encode(options)
+
+      response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :headers => {'Content-Type' => 'application/json'}, :body => body
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }
