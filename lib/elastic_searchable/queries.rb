@@ -33,9 +33,7 @@ module ElasticSearchable
         query[:sort] = sort
       end
 
-      body = defined?(Yajl) ? Yajl::Encoder.encode(options) : ActiveSupport::JSON.encode(options)
-
-      response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :headers => {'Content-Type' => 'application/json'}, :body => body
+      response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :body => options
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }

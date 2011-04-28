@@ -13,7 +13,7 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/put_mapping/
       def update_index_mapping
         if mapping = self.elastic_options[:mapping]
-          ElasticSearchable.request :put, index_type_path('_mapping'), :body => {index_type => mapping}.to_json
+          ElasticSearchable.request :put, index_type_path('_mapping'), :body => {index_type => mapping}
         end
       end
 
@@ -23,7 +23,7 @@ module ElasticSearchable
         options = {}
         options.merge! :settings => self.elastic_options[:index_options] if self.elastic_options[:index_options]
         options.merge! :mappings => {index_type => self.elastic_options[:mapping]} if self.elastic_options[:mapping]
-        ElasticSearchable.request :put, index_path, :body => options.to_json
+        ElasticSearchable.request :put, index_path, :body => options
       end
 
       # explicitly refresh the index, making all operations performed since the last refresh
@@ -77,8 +77,8 @@ module ElasticSearchable
           records.each do |record|
             next unless record.should_index?
             begin
-              doc = record.as_json_for_index.to_json
-              actions << {:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}}.to_json
+              doc = ElasticSearchable.encode_json(record.as_json_for_index)
+              actions << ElasticSearchable.encode_json({:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}})
               actions << doc
             rescue => e
               ElasticSearchable.logger.warn "Unable to bulk index record: #{record.inspect} [#{e.message}]"
@@ -112,7 +112,7 @@ module ElasticSearchable
       def reindex(lifecycle = nil)
         query = {}
         query.merge! :percolate => "*" if self.class.elastic_options[:percolate]
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index.to_json
+        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index
 
         self.run_callbacks("after_index_on_#{lifecycle}".to_sym) if lifecycle
         self.run_callbacks(:after_index)
@@ -135,7 +135,7 @@ module ElasticSearchable
       # can be done automatically when indexing using :percolate => true config option
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate
-        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.as_json_for_index}.to_json
+        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.as_json_for_index}
         response['matches']
       end
 
