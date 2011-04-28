@@ -22,11 +22,19 @@ module ElasticSearchable
     def offline?
       !!@offline
     end
+    # encapsulate encoding hash into json string
+    # support Yajl encoder if installed
+    def encode_json(options = {})
+      defined?(Yajl) ? Yajl::Encoder.encode(options) : ActiveSupport::JSON.encode(options)
+    end
     # perform a request to the elasticsearch server
     # configuration:
     # ElasticSearchable.base_uri 'host:port' controls where to send request to
     # ElasticSearchable.debug_output outputs all http traffic to console
     def request(method, url, options = {})
+      options.merge! :headers => {'Content-Type' => 'application/json'}
+      options.merge! :body => ElasticSearchable.encode_json(options[:body]) if options[:body]
+
       response = self.send(method, url, options)
       logger.debug "elasticsearch request: #{method} #{url} #{"took #{response['took']}ms" if response['took']}"
       validate_response response
