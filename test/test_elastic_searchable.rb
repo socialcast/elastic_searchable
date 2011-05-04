@@ -104,9 +104,10 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'Model.update' do
     setup do
-      Post.create! :title => 'foo'
+      Post.create :title => 'foo', :body => 'bar'
       @post = Post.last
-      @post.update_attribute :title, 'bar'
+      @post.title = 'baz'
+      @post.save
     end
     should 'have fired after_index callback' do
       assert @post.indexed?
@@ -121,12 +122,10 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'Model.create within ElasticSearchable.offline block' do
     setup do
-      Post.any_instance.expects(:update_index_on_create).never
       ElasticSearchable.offline do
         @post = Post.create :title => 'foo', :body => "bar"
       end
     end
-    should 'not have triggered indexing behavior' do end #see expectations
     should 'not have fired after_index callback' do
       assert !@post.indexed?
     end

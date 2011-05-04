@@ -26,7 +26,7 @@ module ElasticSearchable
     # use the "percolations" instance method from within callback to inspect what percolations were returned
     def elastic_searchable(options = {})
       cattr_accessor :elastic_options
-      self.elastic_options = options.symbolize_keys
+      self.elastic_options = options.symbolize_keys.merge(:unless => Array.wrap(options[:unless]).push(:elasticsearch_offline?))
 
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries
@@ -41,8 +41,8 @@ module ElasticSearchable
 
       attr_accessor :index_lifecycle, :percolations
       define_model_callbacks :index, :percolate, :only => :after
-      after_commit :update_index_on_create_backgrounded, :if => :should_index?, :unless => :elasticsearch_offline?, :on => :create
-      after_commit :update_index_on_update_backgrounded, :if => :should_index?, :unless => :elasticsearch_offline?, :on => :update
+      after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
+      after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
       after_commit :delete_from_index, :unless => :elasticsearch_offline?, :on => :destroy
 
       class_eval do
