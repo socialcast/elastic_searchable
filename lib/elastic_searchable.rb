@@ -14,13 +14,13 @@ module ElasticSearchable
 
     # execute a block of work without reindexing objects
     def offline(&block)
-      offline = true
+      @offline = true
       yield
     ensure
-      offline = false
+      @offline = false
     end
     def offline?
-      !!offline
+      !!@offline
     end
     # encapsulate encoding hash into json string
     # support Yajl encoder if installed

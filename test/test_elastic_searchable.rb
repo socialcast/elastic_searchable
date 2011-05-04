@@ -82,20 +82,23 @@ class TestElasticSearchable < Test::Unit::TestCase
     should 'not have fired after_index_on_update callback' do
       assert !@post.indexed_on_update?
     end
-    context 'Model.update' do
-      setup do
-        @post.title = 'baz'
-        @post.save
-      end
-      should 'have fired after_index callback' do
-        assert @post.indexed?
-      end
-      should 'not have fired after_index_on_create callback' do
-        assert !@post.indexed_on_create?
-      end
-      should 'have fired after_index_on_update callback' do
-        assert @post.indexed_on_update?
-      end
+  end
+
+  context 'Model.update' do
+    setup do
+      Post.create :title => 'foo', :body => 'bar'
+      @post = Post.last
+      @post.title = 'baz'
+      @post.save
+    end
+    should 'have fired after_index callback' do
+      assert @post.indexed?
+    end
+    should 'not have fired after_index_on_create callback' do
+      assert !@post.indexed_on_create?
+    end
+    should 'have fired after_index_on_update callback' do
+      assert @post.indexed_on_update?
     end
   end
 
