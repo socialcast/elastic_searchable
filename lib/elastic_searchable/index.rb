@@ -13,7 +13,7 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/put_mapping/
       def update_index_mapping
         if mapping = self.elastic_options[:mapping]
-          ElasticSearchable.request :put, index_type_path('_mapping'), :body => {index_type => mapping}
+          ElasticSearchable.request :put, index_type_path('_mapping'), :json_body => {index_type => mapping}
         end
       end
 
@@ -23,7 +23,7 @@ module ElasticSearchable
         options = {}
         options.merge! :settings => self.elastic_options[:index_options] if self.elastic_options[:index_options]
         options.merge! :mappings => {index_type => self.elastic_options[:mapping]} if self.elastic_options[:mapping]
-        ElasticSearchable.request :put, index_path, :body => options
+        ElasticSearchable.request :put, index_path, :json_body => options
       end
 
       # explicitly refresh the index, making all operations performed since the last refresh
@@ -114,7 +114,7 @@ module ElasticSearchable
       def reindex(lifecycle = nil)
         query = {}
         query.merge! :percolate => "*" if _percolate_callbacks.any?
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :body => self.as_json_for_index
+        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
@@ -139,7 +139,7 @@ module ElasticSearchable
       # can be done automatically when indexing using :percolate => true config option
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate
-        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :body => {:doc => self.as_json_for_index}
+        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => {:doc => self.as_json_for_index}
         self.percolations = response['matches'] || []
         self.percolations
       end
