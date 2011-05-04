@@ -16,9 +16,8 @@ module ElasticSearchable
     # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
     # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
     def elastic_searchable(options = {})
-      options.symbolize_keys!
       cattr_accessor :elastic_options
-      self.elastic_options = options.merge(:unless => Array.wrap(options[:unless]).push(&:elasticsearch_offline?))
+      self.elastic_options = options.symbolize_keys.merge(:unless => Array.wrap(options[:unless]).push(:elasticsearch_offline?))
 
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries
