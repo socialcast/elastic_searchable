@@ -20,10 +20,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<backgrounded>, ["~> 0.7.0"])
   s.add_development_dependency(%q<shoulda>, [">= 0"])
   s.add_development_dependency(%q<mocha>, [">= 0"])
-  s.add_development_dependency(%q<bundler>, [">= 0"])
-  s.add_development_dependency(%q<rcov>, [">= 0"])
   s.add_development_dependency(%q<sqlite3-ruby>, ["~> 1.3.2"])
-  s.add_development_dependency(%q<ruby-debug>, [">= 0"])
+  # s.add_development_dependency(%q<ruby-debug>, [">= 0"])
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
