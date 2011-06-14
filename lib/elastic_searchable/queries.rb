@@ -1,8 +1,10 @@
-require 'will_paginate/collection'
-
 module ElasticSearchable
   module Queries
     PER_PAGE_DEFAULT = 20
+
+    def per_page
+      PER_PAGE_DEFAULT
+    end
 
     # search returns a will_paginate collection of ActiveRecord objects for the search results
     # supported options:
@@ -38,9 +40,7 @@ module ElasticSearchable
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }
 
-      page = WillPaginate::Collection.new(page, options[:size], hits['total'])
-      page.replace results
-      page
+      ElasticSearchable::Paginator.handler.new(results, page, options[:size], hits['total'])
     end
 
     private

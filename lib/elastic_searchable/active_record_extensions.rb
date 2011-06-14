@@ -3,6 +3,7 @@ require 'backgrounded'
 require 'elastic_searchable/queries'
 require 'elastic_searchable/callbacks'
 require 'elastic_searchable/index'
+require 'elastic_searchable/paginator'
 
 module ElasticSearchable
   module ActiveRecordExtensions
@@ -11,7 +12,7 @@ module ElasticSearchable
     # :type (optional) configue type to store data in.  default to model table name
     # :index_options (optional) configure index properties (ex: tokenizer)
     # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
-    # :if (optional) reference symbol/proc condition to only index when condition is true 
+    # :if (optional) reference symbol/proc condition to only index when condition is true
     # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
     # :json (optional) configure the json document to be indexed (see http://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html#method-i-as_json for available options)
     #

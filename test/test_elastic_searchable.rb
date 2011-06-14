@@ -194,7 +194,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_nil @results.next_page
       end
     end
-    
+
     context 'searching for results using a query Hash' do
       setup do
         @results = Post.search({
@@ -244,7 +244,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal @first_post, @results.last
       end
     end
-    
+
     context 'advanced sort options' do
       setup do
         @results = Post.search 'foo', :sort => [{:id => 'desc'}]
@@ -427,8 +427,9 @@ class TestElasticSearchable < Test::Unit::TestCase
       @second = MaxPageSizeClass.create! :name => 'foo two'
       MaxPageSizeClass.refresh_index
     end
-    context 'MaxPageSizeClass.search with default options' do
+    context 'MaxPageSizeClass.search with default options and WillPaginate' do
       setup do
+        ElasticSearchable::Paginator.handler = ElasticSearchable::Pagination::WillPaginate
         @results = MaxPageSizeClass.search 'foo'
       end
       should 'have one per page' do
@@ -439,6 +440,25 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'have second page' do
         assert_equal 2, @results.total_entries
+      end
+    end
+
+    context 'MaxPageSizeClass.search with default options and Kaminari' do
+      setup do
+        ElasticSearchable::Paginator.handler = ElasticSearchable::Pagination::Kaminari
+        @results = MaxPageSizeClass.search 'foo'
+      end
+      should 'have one per page' do
+        assert_equal 1, @results.per_page
+      end
+      should 'return one instance' do
+        assert_equal 1, @results.length
+      end
+      should 'have second page' do
+        assert_equal 2, @results.total_entries
+      end
+      should 'have a total of 2 pages' do
+        assert_equal 2, @results.num_pages
       end
     end
   end
