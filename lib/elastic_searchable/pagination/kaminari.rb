@@ -1,14 +1,17 @@
 module ElasticSearchable
   module Pagination
     class Kaminari < ::ElasticSearchable::Paginator
-      attr_accessor :current_page, :per_page, :total_entries, :total_pages
+      attr_accessor :page, :limit_value, :total_entries, :total_pages
 
       def initialize(results, page, per_page, total = nil)
-        self.current_page = page
-        self.per_page     = per_page
+        self.page          = page
+        self.limit_value   = per_page
         self.total_entries = total if total
         self.replace results
       end
+
+      alias :current_page :page
+      alias :per_page     :limit_value
 
       # total item numbers of the original array
       def total_count
