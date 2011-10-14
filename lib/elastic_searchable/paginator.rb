@@ -3,7 +3,7 @@ module ElasticSearchable
   class Paginator < Array
     class << self
       def handler
-        @handler ||= ElasticSearchable::Pagination::Kaminari
+        @handler ||= ElasticSearchable::Pagination::WillPaginate
       end
 
       def handler=(handler)
