@@ -1,5 +1,3 @@
-#require 'will_paginate'
-
 module ElasticSearchable
   module Indexing
     module ClassMethods
@@ -75,7 +73,6 @@ module ElasticSearchable
         records = scope.limit(per_page).offset(per_page * (page -1)).all
         while records.any? do
           ElasticSearchable.logger.debug "reindexing batch ##{page}..."
-          puts "start indexing page #{page}"
           actions = []
           records.each do |record|
             next unless record.should_index?
@@ -94,7 +91,6 @@ module ElasticSearchable
             ElasticSearchable.logger.warn e
           end
 
-          puts "finished indexing page #{page}"
           page += 1
           records = scope.limit(per_page).offset(per_page* (page-1)).all
         end
