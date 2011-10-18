@@ -1,4 +1,5 @@
 require 'httparty'
+require 'multi_json'
 require 'logger'
 require 'elastic_searchable/active_record_extensions'
 
@@ -25,7 +26,7 @@ module ElasticSearchable
     # encapsulate encoding hash into json string
     # support Yajl encoder if installed
     def encode_json(options = {})
-      defined?(Yajl) ? Yajl::Encoder.encode(options) : ActiveSupport::JSON.encode(options)
+      MultiJson.encode options
     end
     # perform a request to the elasticsearch server
     # configuration:

@@ -38,11 +38,5 @@ ActiveRecord::Schema.define(:version => 1) do
   end
 end
 
-if WillPaginate.respond_to?(:enable_activerecord)
-  puts 'configuring will_paginate v2.x'
-  WillPaginate.enable_activerecord
-else
-  puts 'configuring will_paginate v3.x'
-  require 'will_paginate/finders/active_record'
-  WillPaginate::Finders::ActiveRecord.enable!
-end
+puts 'configuring will_paginate v3.x'
+require 'will_paginate/active_record'
