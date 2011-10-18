@@ -302,7 +302,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         User.create_index
       end
       should 'have used custom index_options' do
-        @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
+        @status = ElasticSearchable.request :get, '/elastic_searchable/_settings'
         expected = {
           "index.number_of_replicas" => "0",
           "index.number_of_shards" => "1",
@@ -311,18 +311,16 @@ class TestElasticSearchable < Test::Unit::TestCase
           "index.analysis.analyzer.default.filter.1" => "lowercase",
           "index.analysis.analyzer.default.filter.2" => "porterStem"
         }
-        assert_equal expected, @status['indices']['elastic_searchable']['settings'], @status.inspect
+        assert_equal expected, @status['elastic_searchable']['settings'], @status.inspect
       end
       should 'have set mapping' do
         @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
         expected = {
-          "users"=> {
-            "properties"=> {
-              "name"=> {"type"=>"string", "index"=>"not_analyzed"}
-            }
+          "properties"=> {
+            "name"=> {"type"=>"string", "index"=>"not_analyzed"}
           }
         }
-        assert_equal expected, @status['elastic_searchable'], @status.inspect
+        assert_equal expected, @status['users'], @status.inspect
       end
     end
   end

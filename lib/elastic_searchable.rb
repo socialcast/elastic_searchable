@@ -34,7 +34,7 @@ module ElasticSearchable
     # ElasticSearchable.debug_output outputs all http traffic to console
     def request(method, url, options = {})
       options.merge! :headers => {'Content-Type' => 'application/json'}
-      options.merge! :body => ElasticSearchable.encode_json(options[:json_body]) if options[:json_body]
+      options.merge! :body => ElasticSearchable.encode_json(options.delete(:json_body)) if options[:json_body]
 
       response = self.send(method, url, options)
       logger.debug "elasticsearch request: #{method} #{url} #{"took #{response['took']}ms" if response['took']}"
