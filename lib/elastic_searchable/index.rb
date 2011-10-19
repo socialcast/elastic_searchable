@@ -66,7 +66,7 @@ module ElasticSearchable
       # TODO: move this to AREL relation to remove the options scope param
       def reindex(options = {})
         self.update_index_mapping
-        options.reverse_merge! :page => 1, :per_page => 1000, :total_entries => 1
+        options.reverse_merge! :page => 1, :per_page => 1000
         scope = options.delete(:scope) || self
         page = options[:page]
         per_page = options[:per_page]
