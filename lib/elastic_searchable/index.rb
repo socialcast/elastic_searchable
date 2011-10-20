@@ -1,5 +1,3 @@
-require 'will_paginate'
-
 module ElasticSearchable
   module Indexing
     module ClassMethods
@@ -68,13 +66,13 @@ module ElasticSearchable
       # TODO: move this to AREL relation to remove the options scope param
       def reindex(options = {})
         self.update_index_mapping
-        options.reverse_merge! :page => 1, :per_page => 1000, :total_entries => 1
+        options.reverse_merge! :page => 1, :per_page => 1000
         scope = options.delete(:scope) || self
-
-        records = scope.paginate(options)
+        page = options[:page]
+        per_page = options[:per_page]
+        records = scope.limit(per_page).offset(per_page * (page -1)).all
         while records.any? do
-          ElasticSearchable.logger.debug "reindexing batch ##{records.current_page}..."
-
+          ElasticSearchable.logger.debug "reindexing batch ##{page}..."
           actions = []
           records.each do |record|
             next unless record.should_index?
@@ -89,12 +87,12 @@ module ElasticSearchable
           begin
             ElasticSearchable.request(:put, '/_bulk', :body => "\n#{actions.join("\n")}\n") if actions.any?
           rescue ElasticError => e
-            ElasticSearchable.logger.warn "Error indexing batch ##{options[:page]}: #{e.message}"
+            ElasticSearchable.logger.warn "Error indexing batch ##{page}: #{e.message}"
             ElasticSearchable.logger.warn e
           end
 
-          options.merge! :page => (records.current_page + 1)
-          records = scope.paginate(options)
+          page += 1
+          records = scope.limit(per_page).offset(per_page* (page-1)).all
         end
       end
 
@@ -109,7 +107,7 @@ module ElasticSearchable
 
     module InstanceMethods
       # reindex the object in elasticsearch
-      # fires after_index callbacks after operation is complete 
+      # fires after_index callbacks after operation is complete
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def reindex(lifecycle = nil)
         query = {}
