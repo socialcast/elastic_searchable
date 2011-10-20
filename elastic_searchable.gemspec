@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Ryan Sonnek"]
   s.email       = ["ryan@codecrate.com"]
-  s.homepage    = %q{http://github.com/wireframe/elastic_searchable}
+  s.homepage    = %q{http://github.com/socialcast/elastic_searchable}
   s.summary     = %q{elastic search for activerecord}
   s.description = %q{integrate the elastic search engine with rails}
 
