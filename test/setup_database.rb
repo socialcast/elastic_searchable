@@ -37,6 +37,3 @@ ActiveRecord::Schema.define(:version => 1) do
     t.belongs_to :parent
   end
 end
-
-puts 'configuring will_paginate v3.x'
-require 'will_paginate/active_record'

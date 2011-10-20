@@ -13,9 +13,8 @@ Gem::Specification.new do |s|
   s.description = %q{integrate the elastic search engine with rails}
 
   s.rubyforge_project = "elastic_searchable"
-  
-  s.add_runtime_dependency(%q<activerecord>, ["~> 3.0.5"])
-  s.add_runtime_dependency(%q<will_paginate>, ["~> 3.0.0"])
+
+  s.add_runtime_dependency(%q<activerecord>, [">= 3.0.5"])
   s.add_runtime_dependency(%q<httparty>, ["~> 0.6.0"])
   s.add_runtime_dependency(%q<backgrounded>, ["~> 0.7.0"])
   s.add_runtime_dependency(%q<multi_json>, ["~> 1.0.0"])
