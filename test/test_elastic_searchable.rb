@@ -217,6 +217,15 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
 
+    context 'when per_page is a string' do
+      setup do
+        @results = Post.search 'foo', :per_page => 1.to_s, :sort => 'id'
+      end
+      should 'find first object' do
+        assert_contains @results, @first_post
+      end
+    end
+
     context 'searching for second page using will_paginate params' do
       setup do
         @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'id'

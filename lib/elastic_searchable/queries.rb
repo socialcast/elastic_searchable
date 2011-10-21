@@ -49,8 +49,8 @@ module ElasticSearchable
     # Model.per_page
     # Model.max_per_page
     def per_page_for_search(options = {})
-      per_page = options.delete(:per_page) || (self.respond_to?(:per_page) ? self.per_page : nil) || ElasticSearchable::Queries::PER_PAGE_DEFAULT
-      per_page = [per_page.to_i, self.max_per_page].min if self.respond_to?(:max_per_page)
+      per_page = (options.delete(:per_page) || (self.respond_to?(:per_page) ? self.per_page : nil) || ElasticSearchable::Queries::PER_PAGE_DEFAULT).to_i
+      per_page = [per_page, self.max_per_page].min if self.respond_to?(:max_per_page)
       per_page
     end
   end
