@@ -42,7 +42,7 @@ module ElasticSearchable
       response
     end
 
-    def query_parser_escape(string)
+    def escape_query(string)
       q = string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"])/,'\\\\\1')
       # escape any exclamation marks followed by whitespace or the end of the string
       # lucene will interpret exclamation marks as a negation operator
