@@ -42,6 +42,10 @@ module ElasticSearchable
       response
     end
 
+    def escape_query(string)
+      string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"!\^\+\-\*:~])/,'\\\\\1')
+    end
+
     private
     # all elasticsearch rest calls return a json response when an error occurs.  ex:
     # {error: 'an error occurred' }
