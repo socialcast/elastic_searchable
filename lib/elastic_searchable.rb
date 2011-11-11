@@ -43,7 +43,7 @@ module ElasticSearchable
     end
 
     def escape_query(string)
-      q = string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"])/,'\\\\\1')
+      q = string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"\\^])/,'\\\\\1')
       # escape any exclamation marks followed by whitespace or the end of the string
       # lucene will interpret exclamation marks as a negation operator
       # This should allow users to continue to use ! for negation while avoiding most errors

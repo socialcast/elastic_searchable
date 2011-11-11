@@ -505,6 +505,12 @@ class TestElasticSearchable < Test::Unit::TestCase
         result = ElasticSearchable.escape_query(queryString)
         assert_equal '\!\)', result
       end
+
+      should "escape ^" do
+        queryString = '^'
+        result = ElasticSearchable.escape_query(queryString)
+        assert_equal '\^', result
+      end
     end
   end
 end
