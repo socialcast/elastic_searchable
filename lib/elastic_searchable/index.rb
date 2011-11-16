@@ -136,8 +136,10 @@ module ElasticSearchable
       # can be done on transient/non-persisted objects!
       # can be done automatically when indexing using :percolate => true config option
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
-      def percolate
-        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => {:doc => self.as_json_for_index}
+      def percolate(percolator_query = nil)
+        body = { :doc => self.as_json_for_index }
+        body.merge!( { :query => percolator_query } ) if percolator_query
+        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => body
         self.percolations = response['matches'] || []
         self.percolations
       end

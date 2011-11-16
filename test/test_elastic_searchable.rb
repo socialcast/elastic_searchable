@@ -325,11 +325,9 @@ class TestElasticSearchable < Test::Unit::TestCase
       should 'have set mapping' do
         @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
         expected = {
-          "properties"=> {
-            "name"=> {"type"=>"string", "index"=>"not_analyzed"}
-          }
+          "name"=> {"type"=>"string", "index"=>"not_analyzed"}
         }
-        assert_equal expected, @status['users'], @status.inspect
+        assert_equal expected, @status['users']['properties'], @status.inspect
       end
     end
   end
@@ -415,6 +413,29 @@ class TestElasticSearchable < Test::Unit::TestCase
           end
           should 'return percolated matches' do
             assert_equal ['myfilter'], @matches
+          end
+        end
+        context "with multiple percolators" do
+          setup do
+            ElasticSearchable.request :put, '/_percolator/elastic_searchable/greenfilter', :json_body => { :color => 'green', :query => {:query_string => {:query => 'foo' }}}
+            ElasticSearchable.request :put, '/_percolator/elastic_searchable/bluefilter', :json_body => { :color => 'blue', :query => {:query_string => {:query => 'foo' }}}
+            ElasticSearchable.request :post, '/_percolator/_refresh'
+          end
+          context 'percolating a non-persisted object with no limitation' do
+            setup do
+              @matches = Book.new(:title => 'foo').percolate
+            end
+            should 'return all percolated matches' do
+              assert_equal ['bluefilter','greenfilter','myfilter'], @matches.sort
+            end
+          end
+          context 'percolating a non-persisted object with limitations' do
+            setup do
+              @matches = Book.new(:title => 'foo').percolate( { :term => { :color => 'green' }} )
+            end
+            should 'return limited percolated matches' do
+              assert_equal ['greenfilter'], @matches
+            end
           end
         end
       end
