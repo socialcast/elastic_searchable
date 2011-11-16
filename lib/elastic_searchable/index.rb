@@ -111,7 +111,7 @@ module ElasticSearchable
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def reindex(lifecycle = nil)
         query = {}
-        query.merge! :percolate => "*" if _percolate_callbacks.any?
+        query[:percolate] = "*" if _percolate_callbacks.any?
         response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
@@ -137,8 +137,8 @@ module ElasticSearchable
       # can be done automatically when indexing using :percolate => true config option
       # http://www.elasticsearch.org/blog/2011/02/08/percolator.html
       def percolate(percolator_query = nil)
-        body = { :doc => self.as_json_for_index }
-        body.merge!( { :query => percolator_query } ) if percolator_query
+        body = {:doc => self.as_json_for_index}
+        body[:query] = percolator_query if percolator_query
         response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => body
         self.percolations = response['matches'] || []
         self.percolations
