@@ -7,6 +7,7 @@ module ElasticSearchable
   DEFAULT_INDEX = 'elastic_searchable'
   include HTTParty
   format :json
+  extend self
   base_uri 'localhost:9200'
 
   class ElasticError < StandardError; end
@@ -63,4 +64,3 @@ ElasticSearchable.logger.level = Logger::INFO
 # configure default index to be elastic_searchable
 # one index can hold many object 'types'
 ElasticSearchable.default_index = ElasticSearchable::DEFAULT_INDEX
-
