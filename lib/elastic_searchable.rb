@@ -42,6 +42,7 @@ module ElasticSearchable
       response
     end
 
+    # escape lucene special characters
     def escape_query(string)
       string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"!\^\+\-\*:~])/,'\\\\\1')
     end
