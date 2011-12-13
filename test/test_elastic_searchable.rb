@@ -576,5 +576,47 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
   end
+  
+  context 'with index containing multiple results' do
+    setup do
+      Post.create_index
+      @first_post  = Post.create :title => 'foo', :body => "first bar"
+      @second_post = Post.create :title => 'foo', :body => "second bar or third bar"
+      Post.refresh_index
+    end
+
+    def hit_count(values)
+      count = 0
+      values.each do |value|
+        if value['details']
+          count += hit_count(value['details'])
+        else
+          value.each_pair do |key, value|
+            count += $3.to_i if key == 'description' && value.match(/^tf\(termFreq\((.+):(.+)\)=(\d+)\)$/)
+          end
+        end
+      end
+      count
+    end
+
+    context 'searching for results with a block to extract hit count' do
+      setup do
+        @hit_counts = {}
+        @results = Post.search({:term => {:body => 'bar'},}, :explain => true) do |response|
+          response['hits']['hits'].each do |hit|
+            @hit_counts[hit['_id'].to_i] = hit_count(hit['_explanation']['details'])
+          end
+        end
+      end
+      should 'find only the object which ' do
+        assert_contains @results, @first_post
+        assert_contains @results, @second_post
+      end
+      should 'have correct hit counts' do
+        assert_equal 1, @hit_counts[@first_post.id]
+        assert_equal 2, @hit_counts[@second_post.id]
+      end
+    end
+  end  
 end
 
