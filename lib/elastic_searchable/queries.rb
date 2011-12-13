@@ -36,6 +36,7 @@ module ElasticSearchable
       end
 
       response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
+      yield response if block_given?
       hits = response['hits']
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }
