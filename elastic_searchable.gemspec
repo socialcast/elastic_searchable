@@ -1,3 +1,4 @@
+
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "elastic_searchable/version"
@@ -20,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency(%q<activerecord>, [">= 3.0.5"])
-  s.add_runtime_dependency(%q<httparty>, [">= 0.6.0"])
+  s.add_runtime_dependency(%q<httparty>, [">= 0.8.1"])
   s.add_runtime_dependency(%q<backgrounded>, [">= 0.7.0"])
   s.add_runtime_dependency(%q<multi_json>, [">= 1.0.0"])
   s.add_development_dependency(%q<rake>, ["0.9.2.2"])
