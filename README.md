@@ -32,7 +32,7 @@ gem 'elastic_searchable'
 # config/initializers/elastic_searchable.rb
 # (optional) customize elasticsearch host
 # default is localhost:9200
-ElasticSearchable.base_uri = 'server:9200'
+ElasticSearchable.base_uri 'server:9200'
 
 # (optional) customize elasticsearch paginator
 # default is ElasticSearchable::Pagination::WillPaginate
