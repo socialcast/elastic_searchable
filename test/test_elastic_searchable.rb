@@ -3,9 +3,9 @@ require File.join(File.dirname(__FILE__), 'helper')
 class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
+    ElasticSearchable.index_settings = {'number_of_replicas' => 0, 'number_of_shards' => 1}
+    # ElasticSearchable.debug_output
   end
-  # ElasticSearchable.debug_output
-  SINGLE_NODE_CLUSTER_CONFIG = {'number_of_replicas' => 0, 'number_of_shards' => 1}
 
   context 'non elastic activerecord class' do
     class Parent < ActiveRecord::Base
@@ -29,7 +29,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Post < ActiveRecord::Base
-    elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG
+    elastic_searchable
     after_index :indexed
     after_index :indexed_on_create, :on => :create
     after_index :indexed_on_update, :on => :update
@@ -76,10 +76,10 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'Model.create_index' do
+  context 'ElasticSearchable.create_index' do
     setup do
-      Post.create_index
-      Post.refresh_index
+      ElasticSearchable.create_index
+      ElasticSearchable.refresh_index
       @status = ElasticSearchable.request :get, '/elastic_searchable/_status'
     end
     should 'have created index' do
@@ -140,11 +140,11 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'with empty index when multiple database records' do
     setup do
       Post.delete_all
-      Post.create_index
+      ElasticSearchable.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
-      Post.delete_index
-      Post.create_index
+      ElasticSearchable.delete_index
+      ElasticSearchable.create_index
     end
     should 'not raise error if error occurs reindexing model' do
       ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
@@ -161,7 +161,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'Model.reindex' do
       setup do
         Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
-        Post.refresh_index
+        ElasticSearchable.refresh_index
       end
       should 'have reindexed both records' do
         assert_nothing_raised do
@@ -174,10 +174,10 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'with index containing multiple results' do
     setup do
-      Post.create_index
+      ElasticSearchable.create_index
       @first_post = Post.create :title => 'foo', :body => "first bar"
       @second_post = Post.create :title => 'foo', :body => "second bar"
-      Post.refresh_index
+      ElasticSearchable.refresh_index
     end
 
     context 'searching for results' do
@@ -267,7 +267,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     context 'destroying one object' do
       setup do
         @first_post.destroy
-        Post.refresh_index
+        ElasticSearchable.refresh_index
       end
       should 'be removed from the index' do
         @request = ElasticSearchable.get "/elastic_searchable/posts/#{@first_post.id}"
@@ -278,7 +278,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
 
   class Blog < ActiveRecord::Base
-    elastic_searchable :if => proc {|b| b.should_index? }, :index_options => SINGLE_NODE_CLUSTER_CONFIG
+    elastic_searchable :if => proc {|b| b.should_index? }
     def should_index?
       false
     end
@@ -297,54 +297,19 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  class User < ActiveRecord::Base
-    elastic_searchable :index_options => {
-      'number_of_replicas' => 0,
-      'number_of_shards' => 1,
-      "analysis.analyzer.default.tokenizer" => 'standard',
-      "analysis.analyzer.default.filter" => ["standard", "lowercase", 'porterStem']},
-    :mapping => {:properties => {:name => {:type => 'string', :index => 'not_analyzed'}}}
-  end
-  context 'activerecord class with :index_options and :mapping' do
-    context 'creating index' do
-      setup do
-        User.create_index
-      end
-      should 'have used custom index_options' do
-        @status = ElasticSearchable.request :get, '/elastic_searchable/_settings'
-        expected = {
-          "index.number_of_replicas" => "0",
-          "index.number_of_shards" => "1",
-          "index.analysis.analyzer.default.tokenizer" => "standard",
-          "index.analysis.analyzer.default.filter.0" => "standard",
-          "index.analysis.analyzer.default.filter.1" => "lowercase",
-          "index.analysis.analyzer.default.filter.2" => "porterStem"
-        }
-        assert_equal expected, @status['elastic_searchable']['settings'], @status.inspect
-      end
-      should 'have set mapping' do
-        @status = ElasticSearchable.request :get, '/elastic_searchable/users/_mapping'
-        expected = {
-          "name"=> {"type"=>"string", "index"=>"not_analyzed"}
-        }
-        assert_equal expected, @status['users']['properties'], @status.inspect
-      end
-    end
-  end
-
   class Friend < ActiveRecord::Base
     belongs_to :book
-    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}, :index_options => SINGLE_NODE_CLUSTER_CONFIG
+    elastic_searchable :json => {:include => {:book => {:only => :title}}, :only => :name}
   end
   context 'activerecord class with optional :json config' do
     context 'creating index' do
       setup do
-        Friend.create_index
+        ElasticSearchable.create_index
         @book = Book.create! :isbn => '123abc', :title => 'another world'
         @friend = Friend.new :name => 'bob', :favorite_color => 'red'
         @friend.book = @book
         @friend.save!
-        Friend.refresh_index
+        ElasticSearchable.refresh_index
       end
       should 'index json with configuration' do
         @response = ElasticSearchable.request :get, "/elastic_searchable/friends/#{@friend.id}"
@@ -360,15 +325,16 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
-  context 'updating ElasticSearchable.default_index' do
+  context '.index_name' do
     setup do
-      ElasticSearchable.default_index = 'my_new_index'
+      @orig_index_name = ElasticSearchable.index_name
+      ElasticSearchable.index_name = 'my_new_index'
     end
     teardown do
-      ElasticSearchable.default_index = ElasticSearchable::DEFAULT_INDEX
+      ElasticSearchable.index_name = @orig_index_name
     end
     should 'change default index' do
-      assert_equal 'my_new_index', ElasticSearchable.default_index
+      assert_equal 'my_new_index', ElasticSearchable.index_name
     end
   end
 
@@ -385,7 +351,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'Book class with after_percolate callback' do
     context 'with created index' do
       setup do
-        Book.create_index
+        ElasticSearchable.create_index
       end
       context "when index has configured percolation" do
         setup do
@@ -443,17 +409,17 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class MaxPageSizeClass < ActiveRecord::Base
-    elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG
+    elastic_searchable
     def self.max_per_page
       1
     end
   end
   context 'with 2 MaxPageSizeClass instances' do
     setup do
-      MaxPageSizeClass.create_index
+      ElasticSearchable.create_index
       @first = MaxPageSizeClass.create! :name => 'foo one'
       @second = MaxPageSizeClass.create! :name => 'foo two'
-      MaxPageSizeClass.refresh_index
+      ElasticSearchable.refresh_index
     end
     context 'MaxPageSizeClass.search with default options and WillPaginate' do
       setup do

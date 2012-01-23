@@ -8,9 +8,7 @@ require 'elastic_searchable/paginator'
 module ElasticSearchable
   module ActiveRecordExtensions
     # Valid options:
-    # :index (optional) configure index to store data in.  default to ElasticSearchable.default_index
     # :type (optional) configue type to store data in.  default to model table name
-    # :index_options (optional) configure index properties (ex: tokenizer)
     # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
     # :if (optional) reference symbol/proc condition to only index when condition is true
     # :unless (optional) reference symbol/proc condition to skip indexing when condition is true
@@ -28,6 +26,13 @@ module ElasticSearchable
     def elastic_searchable(options = {})
       cattr_accessor :elastic_options
       self.elastic_options = options.symbolize_keys.merge(:unless => Array.wrap(options[:unless]).push(:elasticsearch_offline?))
+
+      if self.elastic_options[:index_options]
+        ActiveSupport::Deprecation.warn ":index_options has been deprecated.  Use ElasticSearchable.index_settings instead.", caller
+      end
+      if self.elastic_options[:index]
+        ActiveSupport::Deprecation.warn ":index has been deprecated.  Use ElasticSearchable.index_name instead.", caller
+      end
 
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries

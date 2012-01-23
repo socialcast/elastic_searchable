@@ -19,6 +19,6 @@ require 'setup_database'
 
 class Test::Unit::TestCase
   def delete_index
-    ElasticSearchable.delete '/elastic_searchable' rescue nil
+    ElasticSearchable.delete_index rescue nil
   end
 end

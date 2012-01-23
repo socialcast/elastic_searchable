@@ -15,29 +15,6 @@ module ElasticSearchable
         end
       end
 
-      # create the index
-      # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
-      def create_index
-        options = {}
-        options.merge! :settings => self.elastic_options[:index_options] if self.elastic_options[:index_options]
-        options.merge! :mappings => {index_type => self.elastic_options[:mapping]} if self.elastic_options[:mapping]
-        ElasticSearchable.request :put, index_path, :json_body => options
-      end
-
-      # explicitly refresh the index, making all operations performed since the last refresh
-      # available for search
-      #
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/refresh/
-      def refresh_index
-        ElasticSearchable.request :post, index_path('_refresh')
-      end
-
-      # deletes the entire index
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_index/
-      def delete_index
-        ElasticSearchable.request :delete, index_path
-      end
-
       # delete one record from the index
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/delete/
       def delete_id_from_index(id)
@@ -48,12 +25,7 @@ module ElasticSearchable
 
       # helper method to generate elasticsearch url for this object type
       def index_type_path(action = nil)
-        index_path [index_type, action].compact.join('/')
-      end
-
-      # helper method to generate elasticsearch url for this index
-      def index_path(action = nil)
-        ['', index_name, action].compact.join('/')
+        ElasticSearchable.request_path [index_type, action].compact.join('/')
       end
 
       # reindex all records using bulk api
@@ -78,7 +50,7 @@ module ElasticSearchable
             next unless record.should_index?
             begin
               doc = ElasticSearchable.encode_json(record.as_json_for_index)
-              actions << ElasticSearchable.encode_json({:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}})
+              actions << ElasticSearchable.encode_json({:index => {'_index' => ElasticSearchable.index_name, '_type' => index_type, '_id' => record.id}})
               actions << doc
             rescue => e
               ElasticSearchable.logger.warn "Unable to bulk index record: #{record.inspect} [#{e.message}]"
@@ -97,9 +69,6 @@ module ElasticSearchable
       end
 
       private
-      def index_name
-        self.elastic_options[:index] || ElasticSearchable.default_index
-      end
       def index_type
         self.elastic_options[:type] || self.table_name
       end
