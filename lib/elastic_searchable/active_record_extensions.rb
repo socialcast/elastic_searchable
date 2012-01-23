@@ -11,6 +11,7 @@ module ElasticSearchable
     # :index (optional) configure index to store data in.  default to ElasticSearchable.default_index
     # :type (optional) configue type to store data in.  default to model table name
     # :index_options (optional) configure index properties (ex: tokenizer)
+    # :index_model_timeout (optional) configure timeout in seconds to wait for elasticsearch to respond when indexing a model (defaults to Net::HTTP default of 60 seconds)
     # :mapping (optional) configure field properties for this model (ex: skip analyzer for field)
     # :if (optional) reference symbol/proc condition to only index when condition is true
     # :unless (optional) reference symbol/proc condition to skip indexing when condition is true

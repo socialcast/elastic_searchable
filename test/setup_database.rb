@@ -36,4 +36,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.column :description, :string
     t.belongs_to :parent
   end
+  create_table :status_updates, :force => true do |t|
+    t.column :text, :string
+  end
 end

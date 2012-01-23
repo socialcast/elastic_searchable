@@ -27,7 +27,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       assert !@instance.respond_to?(:percolations)
     end
   end
-
+  
   class Post < ActiveRecord::Base
     elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG
     after_index :indexed
@@ -295,6 +295,21 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert @request.response.is_a?(Net::HTTPNotFound), @request.inspect
       end
     end
+  end
+  
+  class StatusUpdate < ActiveRecord::Base
+    elastic_searchable :index_options => SINGLE_NODE_CLUSTER_CONFIG,
+      :index_model_timeout => 30
+  end
+  context 'ActiveRecord model with :index_model_timeout configured' do
+    setup do
+      StatusUpdate.create_index
+      ElasticSearchable.expects(:put).with() {|class_name, options| options[:timeout] == 30 }
+    end
+    should 'call :put with timeout configured (see setup)' do
+      @foo = StatusUpdate.create! :text => 'foo'
+    end
+    
   end
 
   class User < ActiveRecord::Base

@@ -112,7 +112,7 @@ module ElasticSearchable
       def reindex(lifecycle = nil)
         query = {}
         query[:percolate] = "*" if _percolate_callbacks.any?
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index
+        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index, :timeout => self.elastic_options[:index_model_timeout]
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
