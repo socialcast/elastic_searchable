@@ -180,7 +180,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       Post.refresh_index
     end
 
-    context 'searching for results' do
+    context 'searching on a term that returns one result' do
       setup do
         @results = Post.search 'first'
       end
@@ -192,6 +192,18 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal Post.per_page, @results.per_page
         assert_nil @results.previous_page
         assert_nil @results.next_page
+      end
+      should 'have populated elasticsearch_hit' do
+        assert_equal @results.first.elasticsearch_hit['_id'], @first_post.id.to_s
+      end
+    end
+    context 'searching on a term that returns multiple results' do
+      setup do
+        @results = Post.search 'foo'
+      end
+      should 'have populated elasticsearch_hit on each record with the correct hit json' do
+        assert_equal @results.first.elasticsearch_hit['_id'], @first_post.id.to_s
+        assert_equal @results.last.elasticsearch_hit['_id'], @second_post.id.to_s
       end
     end
 

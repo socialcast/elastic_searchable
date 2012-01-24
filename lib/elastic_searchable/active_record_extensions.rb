@@ -1,5 +1,6 @@
 require 'active_record'
 require 'backgrounded'
+require 'elastic_searchable/result'
 require 'elastic_searchable/queries'
 require 'elastic_searchable/callbacks'
 require 'elastic_searchable/index'
@@ -32,6 +33,7 @@ module ElasticSearchable
       extend ElasticSearchable::Indexing::ClassMethods
       extend ElasticSearchable::Queries
 
+      include ElasticSearchable::Result::InstanceMethods
       include ElasticSearchable::Indexing::InstanceMethods
       include ElasticSearchable::Callbacks::InstanceMethods
 
@@ -40,6 +42,7 @@ module ElasticSearchable
         backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
       end
 
+      attr_reader :elasticsearch_hit # the hit json for this result
       attr_accessor :index_lifecycle, :percolations
       define_model_callbacks :index, :percolate, :only => :after
       after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
