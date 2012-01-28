@@ -193,17 +193,17 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_nil @results.previous_page
         assert_nil @results.next_page
       end
-      should 'have populated elasticsearch_hit' do
-        assert_equal @results.first.elasticsearch_hit['_id'], @first_post.id.to_s
+      should 'have populated hit' do
+        assert_equal @results.first.hit['_id'], @first_post.id.to_s
       end
     end
     context 'searching on a term that returns multiple results' do
       setup do
         @results = Post.search 'foo'
       end
-      should 'have populated elasticsearch_hit on each record with the correct hit json' do
-        assert_equal @results.first.elasticsearch_hit['_id'], @first_post.id.to_s
-        assert_equal @results.last.elasticsearch_hit['_id'], @second_post.id.to_s
+      should 'have populated hit on each record with the correct hit json' do
+        assert_equal @results.first.hit['_id'], @first_post.id.to_s
+        assert_equal @results.last.hit['_id'], @second_post.id.to_s
       end
     end
 
