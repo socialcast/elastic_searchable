@@ -3,57 +3,28 @@ module ElasticSearchable
     module ClassMethods
       # delete all documents of this type in the index
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_mapping/
-      def clean_index
-        ElasticSearchable.request :delete, index_type_path
+      def delete_mapping
+        ElasticSearchable.request :delete, index_mapping_path
       end
 
       # configure the index for this type
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/put_mapping/
-      def update_index_mapping
-        if mapping = self.elastic_options[:mapping]
-          ElasticSearchable.request :put, index_type_path('_mapping'), :json_body => {index_type => mapping}
-        end
-      end
-
-      # create the index
-      # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
-      def create_index
-        options = {}
-        options.merge! :settings => self.elastic_options[:index_options] if self.elastic_options[:index_options]
-        options.merge! :mappings => {index_type => self.elastic_options[:mapping]} if self.elastic_options[:mapping]
-        ElasticSearchable.request :put, index_path, :json_body => options
-      end
-
-      # explicitly refresh the index, making all operations performed since the last refresh
-      # available for search
-      #
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/refresh/
-      def refresh_index
-        ElasticSearchable.request :post, index_path('_refresh')
-      end
-
-      # deletes the entire index
-      # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/delete_index/
-      def delete_index
-        ElasticSearchable.request :delete, index_path
+      def create_mapping
+        return unless self.elastic_options[:mapping]
+        ElasticSearchable.request :put, index_mapping_path('_mapping'), :json_body => {index_type => mapping}
       end
 
       # delete one record from the index
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/delete/
       def delete_id_from_index(id)
-        ElasticSearchable.request :delete, index_type_path(id)
+        ElasticSearchable.request :delete, index_mapping_path(id)
       rescue ElasticSearchable::ElasticError => e
         ElasticSearchable.logger.warn e
       end
 
       # helper method to generate elasticsearch url for this object type
-      def index_type_path(action = nil)
-        index_path [index_type, action].compact.join('/')
-      end
-
-      # helper method to generate elasticsearch url for this index
-      def index_path(action = nil)
-        ['', index_name, action].compact.join('/')
+      def index_mapping_path(action = nil)
+        ElasticSearchable.request_path [index_type, action].compact.join('/')
       end
 
       # reindex all records using bulk api
@@ -65,7 +36,7 @@ module ElasticSearchable
       #
       # TODO: move this to AREL relation to remove the options scope param
       def reindex(options = {})
-        self.update_index_mapping
+        self.create_mapping
         options.reverse_merge! :page => 1, :per_page => 1000
         scope = options.delete(:scope) || self
         page = options[:page]
@@ -78,7 +49,7 @@ module ElasticSearchable
             next unless record.should_index?
             begin
               doc = ElasticSearchable.encode_json(record.as_json_for_index)
-              actions << ElasticSearchable.encode_json({:index => {'_index' => index_name, '_type' => index_type, '_id' => record.id}})
+              actions << ElasticSearchable.encode_json({:index => {'_index' => ElasticSearchable.index_name, '_type' => index_type, '_id' => record.id}})
               actions << doc
             rescue => e
               ElasticSearchable.logger.warn "Unable to bulk index record: #{record.inspect} [#{e.message}]"
@@ -97,9 +68,6 @@ module ElasticSearchable
       end
 
       private
-      def index_name
-        self.elastic_options[:index] || ElasticSearchable.default_index
-      end
       def index_type
         self.elastic_options[:type] || self.table_name
       end
@@ -112,7 +80,7 @@ module ElasticSearchable
       def reindex(lifecycle = nil)
         query = {}
         query[:percolate] = "*" if _percolate_callbacks.any?
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index
+        response = ElasticSearchable.request :put, self.class.index_mapping_path(self.id), :query => query, :json_body => self.as_json_for_index
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
@@ -139,7 +107,7 @@ module ElasticSearchable
       def percolate(percolator_query = nil)
         body = {:doc => self.as_json_for_index}
         body[:query] = percolator_query if percolator_query
-        response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => body
+        response = ElasticSearchable.request :get, self.class.index_mapping_path('_percolate'), :json_body => body
         self.percolations = response['matches'] || []
         self.percolations
       end
