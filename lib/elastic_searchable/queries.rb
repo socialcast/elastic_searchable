@@ -40,6 +40,10 @@ module ElasticSearchable
       ids = hits['hits'].collect {|h| h['_id'].to_i }
       results = self.find(ids).sort_by {|result| ids.index(result.id) }
 
+      results.each do |result|
+        result.instance_variable_set '@hit', hits['hits'][ids.index(result.id)]
+      end
+
       ElasticSearchable::Paginator.handler.new(results, page, options[:size], hits['total'])
     end
 
