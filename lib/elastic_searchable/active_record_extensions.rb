@@ -45,6 +45,7 @@ module ElasticSearchable
         backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
       end
 
+      attr_reader :hit # the hit json for this result
       attr_accessor :index_lifecycle, :percolations
       define_model_callbacks :index, :percolate, :only => :after
       after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
