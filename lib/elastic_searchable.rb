@@ -6,7 +6,7 @@ require 'elastic_searchable/active_record_extensions'
 module ElasticSearchable
   include HTTParty
   format :json
-  base_uri 'localhost:9200'
+  base_uri ENV['ELASTICSEARCH_URL'] || 'localhost:9200'
 
   class ElasticError < StandardError; end
   class << self
