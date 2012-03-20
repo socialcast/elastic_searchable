@@ -7,7 +7,7 @@ module ElasticSearchable
   include HTTParty
   format :json
   base_uri ENV['ELASTICSEARCH_URL'] || 'localhost:9200'
-  proxy_uri ENV['http_proxy'] || ''
+  proxy_uri=ENV['http_proxy'] || ''
   if !proxy_uri.empty? then
     proxy_uri_split = proxy_uri.split(':')
     http_proxy proxy_uri_split[0], (proxy_uri_split[1] || 8080).to_i
