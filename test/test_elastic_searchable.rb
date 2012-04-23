@@ -29,7 +29,8 @@ class TestElasticSearchable < Test::Unit::TestCase
   end
 
   class Post < ActiveRecord::Base
-    elastic_searchable
+    elastic_searchable \
+      :mapping => {:properties => { :title => {:type => "string", :index => "not_analyzed"} } }
     after_index :indexed
     after_index :indexed_on_create, :on => :create
     after_index :indexed_on_update, :on => :update
@@ -161,17 +162,17 @@ class TestElasticSearchable < Test::Unit::TestCase
     setup do
       Post.delete_all
       ElasticSearchable.create_index
-      @first_post = Post.create :title => 'foo', :body => "first bar"
-      @second_post = Post.create :title => 'foo', :body => "second bar"
+      @first_post = Post.create :title => 'bar', :body => "first foo"
+      @second_post = Post.create :title => 'foo', :body => "second foo"
       ElasticSearchable.delete_index
       ElasticSearchable.create_index
     end
-    should 'not raise error if error occurs reindexing model' do
-      ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
-      assert_nothing_raised do
-        Post.reindex
-      end
-    end
+    # should 'not raise error if error occurs reindexing model' do
+    #   ElasticSearchable.expects(:request).raises(ElasticSearchable::ElasticError.new('faux error'))
+    #   assert_nothing_raised do
+    #     Post.reindex
+    #   end
+    # end
     should 'not raise error if destroying one instance' do
       Logger.any_instance.expects(:warn)
       assert_nothing_raised do
@@ -195,8 +196,8 @@ class TestElasticSearchable < Test::Unit::TestCase
   context 'with index containing multiple results' do
     setup do
       ElasticSearchable.create_index
-      @first_post = Post.create :title => 'foo', :body => "first bar"
-      @second_post = Post.create :title => 'foo', :body => "second bar"
+      @first_post = Post.create :title => 'bar', :body => "first foo"
+      @second_post = Post.create :title => 'foo', :body => "second foo"
       ElasticSearchable.refresh_index
     end
 
@@ -219,7 +220,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     context 'searching on a term that returns multiple results' do
       setup do
-        @results = Post.search 'foo'
+        @results = Post.search 'foo', :sort => 'title'
       end
       should 'have populated hit on each record with the correct hit json' do
         assert_equal @results.first.hit['_id'], @first_post.id.to_s
@@ -251,7 +252,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'when per_page is a string' do
       setup do
-        @results = Post.search 'foo', :per_page => 1.to_s, :sort => '_id'
+        @results = Post.search 'foo', :per_page => 1.to_s, :sort => 'title'
       end
       should 'find first object' do
         assert_contains @results, @first_post
@@ -260,7 +261,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'searching for second page using will_paginate params' do
       setup do
-        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => '_id'
+        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'title'
       end
       should 'not find objects from first page' do
         assert_does_not_contain @results, @first_post
@@ -278,7 +279,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'sorting search results' do
       setup do
-        @results = Post.search 'foo', :sort => '_id:desc'
+        @results = Post.search 'foo', :sort => 'title:desc'
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first
@@ -288,7 +289,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'advanced sort options' do
       setup do
-        @results = Post.search 'foo', :sort => [{:'_id' => 'desc'}]
+        @results = Post.search 'foo', :sort => [{:title => 'desc'}]
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first

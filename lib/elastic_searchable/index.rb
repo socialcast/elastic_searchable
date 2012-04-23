@@ -11,7 +11,7 @@ module ElasticSearchable
       # http://www.elasticsearch.com/docs/elasticsearch/rest_api/admin/indices/put_mapping/
       def create_mapping
         return unless self.elastic_options[:mapping]
-        ElasticSearchable.request :put, index_mapping_path('_mapping'), :json_body => {index_type => mapping}
+        ElasticSearchable.request :put, index_mapping_path('_mapping'), :json_body => {index_type => self.elastic_options[:mapping]}
       end
 
       # delete one record from the index
