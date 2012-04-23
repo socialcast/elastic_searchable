@@ -89,16 +89,17 @@ class TestElasticSearchable < Test::Unit::TestCase
 
   context 'Model.create' do
     setup do
+      ElasticSearchable.create_index
       @post = Post.create :title => 'foo', :body => "bar"
     end
     should 'have fired after_index callback' do
-      assert @post.indexed?
+      assert @post.indexed?, 'indexed?'
     end
     should 'have fired after_index_on_create callback' do
-      assert @post.indexed_on_create?
+      assert @post.indexed_on_create?, 'indexed_on_create?'
     end
     should 'not have fired after_index_on_update callback' do
-      assert !@post.indexed_on_update?
+      assert !@post.indexed_on_update?, 'indexed_on_update?'
     end
   end
 
@@ -117,6 +118,25 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     should 'have fired after_index_on_update callback' do
       assert @post.indexed_on_update?
+    end
+  end
+
+  context 'Model.create within two ElasticSearchable.offline blocks' do
+    setup do
+      ElasticSearchable.offline do
+        ElasticSearchable.offline do
+          @post = Post.create :title => 'foo', :body => "bar"
+        end
+      end
+    end
+    should 'not have fired after_index callback' do
+      assert !@post.indexed?
+    end
+    should 'not have fired after_index_on_create callback' do
+      assert !@post.indexed_on_create?
+    end
+    should 'not have fired after_index_on_update callback' do
+      assert !@post.indexed_on_update?
     end
   end
 
@@ -231,7 +251,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'when per_page is a string' do
       setup do
-        @results = Post.search 'foo', :per_page => 1.to_s, :sort => 'id'
+        @results = Post.search 'foo', :per_page => 1.to_s, :sort => '_id'
       end
       should 'find first object' do
         assert_contains @results, @first_post
@@ -240,7 +260,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'searching for second page using will_paginate params' do
       setup do
-        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => 'id'
+        @results = Post.search 'foo', :page => 2, :per_page => 1, :sort => '_id'
       end
       should 'not find objects from first page' do
         assert_does_not_contain @results, @first_post
@@ -258,7 +278,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'sorting search results' do
       setup do
-        @results = Post.search 'foo', :sort => 'id:desc'
+        @results = Post.search 'foo', :sort => '_id:desc'
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first
@@ -268,7 +288,7 @@ class TestElasticSearchable < Test::Unit::TestCase
 
     context 'advanced sort options' do
       setup do
-        @results = Post.search 'foo', :sort => [{:id => 'desc'}]
+        @results = Post.search 'foo', :sort => [{:'_id' => 'desc'}]
       end
       should 'sort results correctly' do
         assert_equal @second_post, @results.first

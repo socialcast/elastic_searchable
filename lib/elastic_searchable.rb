@@ -10,17 +10,19 @@ module ElasticSearchable
 
   class ElasticError < StandardError; end
   class << self
-    attr_accessor :logger, :index_name, :index_settings, :offline
+    attr_accessor :logger, :index_name, :index_settings
+    @@offline = false
 
     # execute a block of work without reindexing objects
     def offline(&block)
-      @offline = true
+      original_value = offline?
+      @@offline = true
       yield
     ensure
-      @offline = false
+      @@offline = original_value
     end
     def offline?
-      !!@offline
+      !!@@offline
     end
     # encapsulate encoding hash into json string
     # support Yajl encoder if installed
