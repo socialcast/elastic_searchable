@@ -43,6 +43,11 @@ module ElasticSearchable
       response
     end
 
+    # options for automatic active record indexing
+    def backgrounded_options
+      {:queue => 'elasticsearch'}
+    end
+
     # escape lucene special characters
     def escape_query(string)
       string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"!\^\+\-\*:~])/,'\\\\\1')
