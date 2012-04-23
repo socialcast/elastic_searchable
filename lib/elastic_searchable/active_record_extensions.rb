@@ -69,6 +69,7 @@ module ElasticSearchable
         end
 
         # default number of search results for this model
+        # can be overridden by implementing classes
         def per_page
           PER_PAGE_DEFAULT
         end
@@ -181,13 +182,14 @@ module ElasticSearchable
         rescue ElasticSearchable::ElasticError => e
           ElasticSearchable.logger.warn e
         end
+
         private
         # determine the number of search results per page
         # supports will_paginate configuration by using:
         # Model.per_page
         # Model.max_per_page
         def per_page_for_search(options = {})
-          per_page = (options.delete(:per_page) || (self.respond_to?(:per_page) ? self.per_page : nil) || ElasticSearchable::Queries::PER_PAGE_DEFAULT).to_i
+          per_page = (options.delete(:per_page) || self.per_page).to_i
           per_page = [per_page, self.max_per_page].min if self.respond_to?(:max_per_page)
           per_page
         end
@@ -215,6 +217,7 @@ module ElasticSearchable
       end
 
       # document to index in elasticsearch
+      # can be overridden by implementing class to customize the content
       def as_json_for_index
         original_include_root_in_json = self.class.include_root_in_json
         self.class.include_root_in_json = false
