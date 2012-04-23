@@ -97,4 +97,3 @@ ElasticSearchable.logger.level = Logger::INFO
 # configure default index to be elastic_searchable
 # one index can hold many object 'types'
 ElasticSearchable.index_name = 'elastic_searchable'
-
