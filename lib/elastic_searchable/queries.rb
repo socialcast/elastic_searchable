@@ -17,15 +17,13 @@ module ElasticSearchable
       options[:fields] ||= '_id'
       options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
-      if query.is_a?(Hash)
-        options[:query] = query
+      options[:query] ||= if query.is_a?(Hash)
+        query
       else
-        options[:query] = {
-          :query_string => {
-            :query => query,
-            :default_operator => options.delete(:default_operator)
-          }
-        }
+        {}.tap do |q|
+          q[:query_string] = { :query => query }
+          q[:query_string][:default_operator] = options.delete(:default_operator) if options.has_key?(:default_operator)
+        end
       end
       query = {}
       case sort = options.delete(:sort)

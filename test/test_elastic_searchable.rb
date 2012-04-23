@@ -4,7 +4,7 @@ class TestElasticSearchable < Test::Unit::TestCase
   def setup
     delete_index
     ElasticSearchable.index_settings = {'number_of_replicas' => 0, 'number_of_shards' => 1}
-    # ElasticSearchable.debug_output
+    ElasticSearchable.debug_output
   end
 
   context 'non elastic activerecord class' do
