@@ -85,8 +85,8 @@ module ElasticSearchable
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         _run_index_callbacks
 
-        self.percolations = response['matches'] || []
-        _run_percolate_callbacks if self.percolations.any?
+        @percolations = response['matches'] || []
+        _run_percolate_callbacks if @percolations.any?
       end
       # document to index in elasticsearch
       def as_json_for_index
@@ -108,8 +108,7 @@ module ElasticSearchable
         body = {:doc => self.as_json_for_index}
         body[:query] = percolator_query if percolator_query
         response = ElasticSearchable.request :get, self.class.index_mapping_path('_percolate'), :json_body => body
-        self.percolations = response['matches'] || []
-        self.percolations
+        @percolations = response['matches'] || []
       end
 
       private

@@ -388,6 +388,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       context "when index has configured percolation" do
         setup do
+          ElasticSearchable.request :delete, '/_percolator'
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :json_body => {:query => {:query_string => {:query => 'foo' }}}
           ElasticSearchable.request :post, '/_percolator/_refresh'
         end
@@ -416,6 +417,7 @@ class TestElasticSearchable < Test::Unit::TestCase
         end
         context "with multiple percolators" do
           setup do
+            ElasticSearchable.request :delete, '/_percolator'
             ElasticSearchable.request :put, '/_percolator/elastic_searchable/greenfilter', :json_body => { :color => 'green', :query => {:query_string => {:query => 'foo' }}}
             ElasticSearchable.request :put, '/_percolator/elastic_searchable/bluefilter', :json_body => { :color => 'blue', :query => {:query_string => {:query => 'foo' }}}
             ElasticSearchable.request :post, '/_percolator/_refresh'
