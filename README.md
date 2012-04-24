@@ -1,3 +1,4 @@
+[![Build Status](https://secure.travis-ci.org/socialcast/elastic_searchable.png?branch=master)](http://travis-ci.org/socialcast/elastic_searchable)http://travis-ci.org/#!/socialcast/elastic_searchable
 # elastic_searchable
 
 Integrate the elasticsearch library into Rails.
