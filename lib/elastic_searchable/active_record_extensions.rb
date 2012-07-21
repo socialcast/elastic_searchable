@@ -42,8 +42,8 @@ module ElasticSearchable
           backgrounded :delete_id_from_index => ElasticSearchable.backgrounded_options
         end
 
-        after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
-        after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
+        after_commit_backgrounded :update_index_on_create, :if => :should_index?, :on => :create
+        after_commit_backgrounded :update_index_on_update, :if => :should_index?, :on => :update
         after_commit :delete_from_index, :unless => :elasticsearch_offline?, :on => :destroy
       end
     end
@@ -245,7 +245,7 @@ module ElasticSearchable
 
       private
       def delete_from_index
-        self.class.delete_id_from_index_backgrounded self.id
+        self.class.backgrounded.delete_id_from_index self.id
       end
       def update_index_on_create
         reindex :create
