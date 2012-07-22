@@ -1,6 +1,6 @@
 # ElasticSearchableServer
 
-TODO: Write a gem description
+A bundled ElasticSearch server for Rails 3.
 
 ## Installation
 
@@ -18,7 +18,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+rake elastic_searchable:server:run         # Run the ElasticSearch instance in the foreground
+rake elastic_searchable:server:start       # Start an ElasticSearch instance in the background
+rake elastic_searchable:server:stop        # Stop the ElasticSearch instance
+```
 
 ## Contributing
 

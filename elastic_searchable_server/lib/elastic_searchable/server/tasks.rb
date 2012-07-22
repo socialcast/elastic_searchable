@@ -19,7 +19,7 @@ namespace :elastic_searchable do
       ElasticSearchable::Server::ElasticSearch.new.run
     end
 
-    desc 'Stop the Solr instance'
+    desc 'Stop the ElasticSearch instance'
     task :stop => :environment do
       case RUBY_PLATFORM
       when /w(in)?32$/, /java$/
