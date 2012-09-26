@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency(%q<activerecord>, [">= 3.0.5"])
   s.add_runtime_dependency(%q<httparty>, [">= 0.6.0"])
-  s.add_runtime_dependency(%q<backgrounded>, [">= 0.7.0"])
+  s.add_runtime_dependency(%q<backgrounded>, [">= 2.0.0"])
   s.add_runtime_dependency(%q<multi_json>, [">= 1.0.0"])
   s.add_development_dependency(%q<rake>, ["0.9.2.2"])
   s.add_development_dependency(%q<sqlite3>, ["1.3.5"])
