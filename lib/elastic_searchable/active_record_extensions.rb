@@ -205,10 +205,10 @@ module ElasticSearchable
         response = ElasticSearchable.request :put, self.class.index_mapping_path(self.id), :query => query, :json_body => self.as_json_for_index
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
-        _run_index_callbacks
+        run_callbacks :index
 
         @percolations = response['matches'] || []
-        _run_percolate_callbacks if @percolations.any?
+        run_callbacks :percolate if @percolations.any?
       end
 
       # document to index in elasticsearch
