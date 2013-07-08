@@ -160,7 +160,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     context 'Model.reindex' do
       setup do
-        Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
+        Post.reindex :per_page => 1, :scope => Post.order('body desc')
         Post.refresh_index
       end
       should 'have reindexed both records' do
