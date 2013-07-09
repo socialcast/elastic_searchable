@@ -27,7 +27,6 @@ DEPRECATION_LOGGER = DeprecationLogger.new(File.join(File.dirname(__FILE__), "/d
 ActiveSupport::Deprecation.debug = false
 ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:deprecation_log] = lambda { |message, callstack|
   DEPRECATION_LOGGER.warn(message)
-#  DEPRECATION_LOGGER.warn(message + "\n\t" + callstack.join("\n\t"))
 }
 ActiveSupport::Deprecation.behavior = :deprecation_log
 
