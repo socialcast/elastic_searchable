@@ -160,7 +160,7 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
     context 'Model.reindex' do
       setup do
-        Post.reindex :per_page => 1, :scope => Post.scoped(:order => 'body desc')
+        Post.reindex :per_page => 1, :scope => Post.order('body desc')
         Post.refresh_index
       end
       should 'have reindexed both records' do
@@ -324,6 +324,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'have used custom index_options' do
         @status = ElasticSearchable.request :get, '/elastic_searchable/_settings'
+        @status['elastic_searchable']['settings'].delete('index.version.created')
         expected = {
           "index.number_of_replicas" => "0",
           "index.number_of_shards" => "1",
