@@ -14,8 +14,8 @@ module ElasticSearchable
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
+      size = (options[:size] ||= per_page_for_search(options))
       options[:fields] ||= '_id'
-      options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
       if query.is_a?(Hash)
         options[:query] = query
@@ -37,17 +37,43 @@ module ElasticSearchable
 
       response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
       hits = response['hits']
-      ids = hits['hits'].collect {|h| h['_id'].to_i }
-      results = self.find(ids).sort_by {|result| ids.index(result.id) }
+      ids = collect_hit_ids(hits)
+      results = collect_result_records(ids, hits)
+      ids_to_delete = []
 
-      results.each do |result|
-        result.instance_variable_set '@hit', hits['hits'][ids.index(result.id)]
+      until results.size == ids.size
+        options[:from] = options[:from] + options[:size]
+        options[:size] = ids.size - results.size
+
+        ids_to_delete += (ids - results.map(&:id))
+        ids -= ids_to_delete
+
+        response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
+        hits = response['hits']
+        new_ids = collect_hit_ids(hits)
+        ids += new_ids
+        results += collect_result_records(new_ids, hits)
       end
 
-      ElasticSearchable::Paginator.handler.new(results, page, options[:size], hits['total'])
+      ids_to_delete.each do |id|
+        delete_id_from_index_backgrounded id
+      end
+
+      ElasticSearchable::Paginator.handler.new(results, page, size, hits['total'])
     end
 
     private
+
+    def collect_hit_ids(hits)
+      hits['hits'].collect {|h| h['_id'].to_i }
+    end
+
+    def collect_result_records(ids, hits)
+      self.where(:id => ids).to_a.sort_by{ |result| ids.index(result.id) }.each do |result|
+        result.instance_variable_set '@hit', hits['hits'][ids.index(result.id)]
+      end
+    end
+
     # determine the number of search results per page
     # supports will_paginate configuration by using:
     # Model.per_page

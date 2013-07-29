@@ -276,6 +276,56 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
 
+    context 'deleting a record without updating the index' do
+
+      context 'backfilling a partial page' do
+        setup do
+          @third_post = Post.create :title => 'foo', :body => "third bar"
+          Post.refresh_index
+          @second_post.delete
+          Post.expects(:delete_id_from_index_backgrounded).with(@second_post.id)
+
+          assert_nothing_raised do
+            @results = Post.search 'foo', :size => 2, :sort => 'id:asc'
+          end
+        end
+        should 'not raise an exception' do end
+        should 'trigger deletion of bad index records' do end
+        should 'backfill the first page with results from 2nd page' do
+          assert_equal @first_post, @results.first
+          assert_equal @third_post, @results.last
+        end
+      end
+
+      context 'backfilling with multiple pages' do
+        setup do
+          Post.delete_all
+          @posts = (0...8).map do |i|
+            Post.create :title => 'foo', :body => "#{i} bar"
+          end
+          Post.refresh_index
+
+          @removed_posts = []
+          @posts.each_with_index do |post, i|
+            if i % 2 == 1
+              @removed_posts << post
+              post.delete
+              Post.expects(:delete_id_from_index_backgrounded).with(post.id)
+            end
+          end
+
+          assert_nothing_raised do
+            @results = Post.search 'foo', :size => 4, :sort => 'id:desc'
+          end
+        end
+        should 'not raise an exception' do end
+        should 'trigger deletion of bad index records' do end
+        should 'backfill the first page with results from other pages' do
+          assert_equal((@posts - @removed_posts).reverse, @results)
+        end
+      end
+    end
+
     context 'destroying one object' do
       setup do
         @first_post.destroy
