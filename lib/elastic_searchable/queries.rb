@@ -40,6 +40,7 @@ module ElasticSearchable
       ids = collect_hit_ids(hits)
       results = collect_result_records(ids, hits)
       ids_to_delete = []
+      hits_total = hits['total'].to_i
 
       until results.size == ids.size
         options[:from] = options[:from] + options[:size]
@@ -59,7 +60,7 @@ module ElasticSearchable
         delete_id_from_index_backgrounded id
       end
 
-      ElasticSearchable::Paginator.handler.new(results, page, size, hits['total'].to_i - ids_to_delete.size)
+      ElasticSearchable::Paginator.handler.new(results, page, size, hits_total - ids_to_delete.size)
     end
 
     private
