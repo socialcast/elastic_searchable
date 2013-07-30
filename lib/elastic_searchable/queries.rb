@@ -59,7 +59,7 @@ module ElasticSearchable
         delete_id_from_index_backgrounded id
       end
 
-      ElasticSearchable::Paginator.handler.new(results, page, size, hits['total'])
+      ElasticSearchable::Paginator.handler.new(results, page, size, hits['total'].to_i - ids_to_delete.size)
     end
 
     private
