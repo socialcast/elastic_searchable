@@ -14,7 +14,7 @@ module ElasticSearchable
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
-      size = (options[:size] ||= per_page_for_search(options))
+      options[:size] ||= per_page_for_search(options)
       options[:fields] ||= '_id'
       options[:from] ||= options[:size] * (page - 1)
       if query.is_a?(Hash)
