@@ -14,7 +14,7 @@ module ElasticSearchable
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
-      options[:size] ||= per_page_for_search(options)
+      size = (options[:size] ||= per_page_for_search(options))
       options[:fields] ||= '_id'
       options[:from] ||= options[:size] * (page - 1)
       if query.is_a?(Hash)
@@ -35,25 +35,27 @@ module ElasticSearchable
         query[:sort] = sort
       end
 
-      response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
-      hits = response['hits']
-      ids = collect_hit_ids(hits)
-      results = collect_result_records(ids, hits)
       ids_to_delete = []
-      hits_total = hits['total'].to_i
+      results = []
+      ids = []
+      hits_total = nil
 
-      until results.size == ids.size
+      loop do
+        response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
+        hits = response['hits']
+        hits_total ||= hits['total'].to_i
+        new_ids = collect_hit_ids(hits)
+        new_results = collect_result_records(new_ids, hits)
+        ids += new_ids
+        results += new_results
+
+        break if results.size == ids.size
+
         options[:from] = options[:from] + options[:size]
         options[:size] = ids.size - results.size
 
-        ids_to_delete += (ids - results.map(&:id))
+        ids_to_delete += (new_ids - new_results.map(&:id))
         ids -= ids_to_delete
-
-        response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
-        hits = response['hits']
-        new_ids = collect_hit_ids(hits)
-        ids += new_ids
-        results += collect_result_records(new_ids, hits)
       end
 
       ids_to_delete.each do |id|
