@@ -310,8 +310,8 @@ class TestElasticSearchable < Test::Unit::TestCase
           @results = Post.search 'foo', :size => 4, :sort => 'id:desc'
         end
       end
-      should 'not raise an exception' do end
-      should 'trigger deletion of bad index records' do end
+      # should 'not raise an exception' do end
+      # should 'trigger deletion of bad index records' do end
       should 'backfill the first page with results from other pages' do
         assert_equal((@posts - @removed_posts).reverse, @results)
       end
