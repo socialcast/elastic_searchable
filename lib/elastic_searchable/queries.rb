@@ -39,6 +39,7 @@ module ElasticSearchable
       results = []
       ids = []
       hits_total = nil
+      retries = 5
 
       loop do
         response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
@@ -49,7 +50,9 @@ module ElasticSearchable
         ids += new_ids
         results += new_results
 
-        break if results.size == ids.size
+        break if results.size >= ids.size || retries <= 0
+
+        retries -= 1
 
         options[:from] = options[:from] + options[:size]
         options[:size] = ids.size - results.size
