@@ -1,6 +1,7 @@
 module ElasticSearchable
   module Queries
     PER_PAGE_DEFAULT = 20
+    MAX_RETRIES = 5
 
     def per_page
       PER_PAGE_DEFAULT
@@ -14,8 +15,8 @@ module ElasticSearchable
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
+      size = (options[:size] ||= per_page_for_search(options))
       options[:fields] ||= '_id'
-      options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
       if query.is_a?(Hash)
         options[:query] = query
@@ -35,19 +36,51 @@ module ElasticSearchable
         query[:sort] = sort
       end
 
-      response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
-      hits = response['hits']
-      ids = hits['hits'].collect {|h| h['_id'].to_i }
-      results = self.find(ids).sort_by {|result| ids.index(result.id) }
+      ids_to_delete = []
+      results = []
+      ids = []
+      hits_total = nil
+      retries = MAX_RETRIES
 
-      results.each do |result|
-        result.instance_variable_set '@hit', hits['hits'][ids.index(result.id)]
+      loop do
+        response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
+        hits = response['hits']
+        hits_total ||= hits['total'].to_i
+        new_ids = collect_hit_ids(hits)
+        new_results = collect_result_records(new_ids, hits)
+        ids += new_ids
+        results += new_results
+
+        break if results.size >= ids.size || retries <= 0
+
+        retries -= 1
+
+        options[:from] = options[:from] + options[:size]
+        options[:size] = ids.size - results.size
+
+        ids_to_delete += (new_ids - new_results.map(&:id))
+        ids -= ids_to_delete
       end
 
-      ElasticSearchable::Paginator.handler.new(results, page, options[:size], hits['total'])
+      ids_to_delete.each do |id|
+        delete_id_from_index_backgrounded id
+      end
+
+      ElasticSearchable::Paginator.handler.new(results, page, size, hits_total - ids_to_delete.size)
     end
 
     private
+
+    def collect_hit_ids(hits)
+      hits['hits'].collect {|h| h['_id'].to_i }
+    end
+
+    def collect_result_records(ids, hits)
+      self.where(:id => ids).to_a.sort_by{ |result| ids.index(result.id) }.each do |result|
+        result.instance_variable_set '@hit', hits['hits'][ids.index(result.id)]
+      end
+    end
+
     # determine the number of search results per page
     # supports will_paginate configuration by using:
     # Model.per_page
