@@ -1,6 +1,7 @@
 module ElasticSearchable
   module Queries
     PER_PAGE_DEFAULT = 20
+    MAX_RETRIES = 5
 
     def per_page
       PER_PAGE_DEFAULT
@@ -39,7 +40,7 @@ module ElasticSearchable
       results = []
       ids = []
       hits_total = nil
-      retries = 5
+      retries = MAX_RETRIES
 
       loop do
         response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
