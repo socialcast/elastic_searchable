@@ -1,4 +1,5 @@
 Ryan Sonnek - Original Author
+Geoff Hichborn - Implemented search result autoscrubbing
 
 
 Complete list of contributors:
