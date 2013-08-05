@@ -288,6 +288,39 @@ class TestElasticSearchable < Test::Unit::TestCase
     end
   end
 
+  context 'deleting a record without updating the index' do
+
+    context 'backfilling partial result pages' do
+      setup do
+        @posts = (1..8).map do |i|
+          Post.create :title => 'foo', :body => "#{i} bar"
+        end
+        Post.refresh_index
+
+        @removed_posts = []
+        @posts.each_with_index do |post, i|
+          if i % 2 == 1
+            @removed_posts << post
+            post.delete
+            Post.expects(:delete_id_from_index_backgrounded).with(post.id)
+          end
+        end
+
+        assert_nothing_raised do
+          @results = Post.search 'foo', :size => 4, :sort => 'id:desc'
+        end
+      end
+      # should 'not raise an exception' do end
+      # should 'trigger deletion of bad index records' do end
+      should 'backfill the first page with results from other pages' do
+        assert_equal((@posts - @removed_posts).reverse, @results)
+      end
+      should 'adjust total hit count to exclude invalid results encountered from repaging' do
+        assert_equal 4, @results.total_entries
+      end
+    end
+
+  end
 
   class Blog < ActiveRecord::Base
     elastic_searchable :if => proc {|b| b.should_index? }, :index_options => SINGLE_NODE_CLUSTER_CONFIG
