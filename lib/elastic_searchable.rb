@@ -53,6 +53,11 @@ module ElasticSearchable
       string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"!\^\+\-\*:~])/,'\\\\\1')
     end
 
+    # escape all lucene special characters except for ", (, and ) to allow for grouping of terms
+    def allow_grouping_escape_query(string)
+      string.to_s.gsub(/([\[\]\{\}\?\\!\^\+\-\*:~])/,'\\\\\1')
+    end
+
     # create the index
     # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
     def create_index
