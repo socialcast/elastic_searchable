@@ -491,6 +491,92 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
     end
 
+    context "allow_grouping_escape_query" do
+      should "escape exclamation marks" do
+        queryString = '!'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\!', result
+      end
+
+      should "escape ^" do
+        queryString = '^'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\^', result
+      end
+
+      should "escape +" do
+        queryString = '+'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\+', result
+      end
+
+      should "escape -" do
+        queryString = '-'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\-', result
+      end
+
+      should "not escape (" do
+        queryString = '('
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '(', result
+      end
+
+      should "not escape )" do
+        queryString = ')'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal ')', result
+      end
+
+      should "escape {" do
+        queryString = '}'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\}', result
+      end
+
+      should "escape [" do
+        queryString = '['
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\[', result
+      end
+
+      should "escape ]" do
+        queryString = ']'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\]', result
+      end
+
+      should 'not escape "' do
+        queryString = '"'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '"', result
+      end
+
+      should "escape ~" do
+        queryString = '~'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\~', result
+      end
+
+      should "escape *" do
+        queryString = '*'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\*', result
+      end
+
+      should "escape :" do
+        queryString = ':'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\:', result
+      end
+
+      should "escape ?" do
+        queryString = '?'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\?', result
+      end
+    end
+
     context "escape_query" do
       should "escape exclamation marks" do
         queryString = '!'
