@@ -58,7 +58,8 @@ module ElasticSearchable
       open_parens = 0
       escape_quotes = false
       escape_parens = false
-      string.to_s.gsub!(/([\[\]\{\}\?\\!\^\+\-\*:~])/,'\\\\\1')
+      string = string.to_s
+      string.gsub!(/([\[\]\{\}\?\\!\^\+\-\*:~])/,'\\\\\1')
       string.each_char do |char|
         case char
         when '('
