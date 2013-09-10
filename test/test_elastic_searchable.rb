@@ -388,7 +388,7 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       context "when index has configured percolation" do
         setup do
-          ElasticSearchable.request :delete, '/_percolator'
+          ElasticSearchable.request :delete, '/_percolator' rescue ElasticSearchable::ElasticError
           ElasticSearchable.request :put, '/_percolator/elastic_searchable/myfilter', :json_body => {:query => {:query_string => {:query => 'foo' }}}
           ElasticSearchable.request :post, '/_percolator/_refresh'
         end
@@ -488,6 +488,116 @@ class TestElasticSearchable < Test::Unit::TestCase
       end
       should 'have a total of 2 pages' do
         assert_equal 2, @results.num_pages
+      end
+    end
+
+    context "allow_grouping_escape_query" do
+      should "escape exclamation marks" do
+        queryString = '!'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\!', result
+      end
+
+      should "escape ^" do
+        queryString = '^'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\^', result
+      end
+
+      should "escape +" do
+        queryString = '+'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\+', result
+      end
+
+      should "escape -" do
+        queryString = '-'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\-', result
+      end
+
+      should "escape (" do
+        queryString = '('
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\(', result
+      end
+
+      should "escape )" do
+        queryString = ')'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\)', result
+      end
+
+      should "not escape ()" do
+        queryString = '()'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '()', result
+      end
+
+      should "escape ))((" do
+        queryString = '))(('
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\)\)\(\(', result
+      end
+
+      should "not escape ()(())()" do
+        queryString = '()(())()'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '()(())()', result
+      end
+
+      should "escape {" do
+        queryString = '}'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\}', result
+      end
+
+      should "escape [" do
+        queryString = '['
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\[', result
+      end
+
+      should "escape ]" do
+        queryString = ']'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\]', result
+      end
+
+      should 'escape "' do
+        queryString = '"'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\"', result
+      end
+
+      should 'not escape ""' do
+        queryString = '""'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '""', result
+      end
+
+      should "escape ~" do
+        queryString = '~'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\~', result
+      end
+
+      should "escape *" do
+        queryString = '*'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\*', result
+      end
+
+      should "escape :" do
+        queryString = ':'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\:', result
+      end
+
+      should "escape ?" do
+        queryString = '?'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\?', result
       end
     end
 

@@ -53,6 +53,32 @@ module ElasticSearchable
       string.to_s.gsub(/([\(\)\[\]\{\}\?\\\"!\^\+\-\*:~])/,'\\\\\1')
     end
 
+    # escape all lucene special characters except for ", (, and ) to allow for grouping of terms
+    def allow_grouping_escape_query(string)
+      open_parens = 0
+      quotes_counter = 0
+      escape_parens = false
+      string = string.to_s
+      string.gsub!(/([\[\]\{\}\?\\!\^\+\-\*:~])/,'\\\\\1')
+      string.each_char do |char|
+        case char
+        when '('
+          open_parens += 1
+        when ')'
+          open_parens -= 1
+          if open_parens < 0
+            escape_parens = true
+            break
+          end
+        when '"'
+          quotes_counter += 1
+        end
+      end
+      string.gsub!(/([\(\)])/,'\\\\\1') if escape_parens || (open_parens > 0)
+      string.gsub!(/(\")/, '\\\\\1') if (quotes_counter % 2) != 0
+      string
+    end
+
     # create the index
     # http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
     def create_index
