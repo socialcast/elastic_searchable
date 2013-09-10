@@ -65,10 +65,7 @@ module ElasticSearchable
           open_parens += 1
         when ')'
           open_parens -= 1
-          if open_parens < 0
-            escape_parens = true
-            break
-          end
+          (escape_parens = true && break) if open_parens < 0
         when '"'
           escape_quotes = !escape_quotes
         end
