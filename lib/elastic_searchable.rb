@@ -56,7 +56,7 @@ module ElasticSearchable
     # escape all lucene special characters except for ", (, and ) to allow for grouping of terms
     def allow_grouping_escape_query(string)
       open_parens = 0
-      escape_quotes = false
+      quotes_counter = 0
       escape_parens = false
       string = string.to_s
       string.gsub!(/([\[\]\{\}\?\\!\^\+\-\*:~])/,'\\\\\1')
@@ -71,15 +71,11 @@ module ElasticSearchable
             break
           end
         when '"'
-          escape_quotes = !escape_quotes
+          quotes_counter += 1
         end
       end
-      if escape_parens || (open_parens > 0)
-        string.gsub!(/([\(\)])/,'\\\\\1')
-      end
-      if escape_quotes
-        string.gsub!(/(\")/, '\\\\\1')
-      end
+      string.gsub!(/([\(\)])/,'\\\\\1') if escape_parens || (open_parens > 0)
+      string.gsub!(/(\")/, '\\\\\1') if (quotes_counter % 2) != 0
       string
     end
 
