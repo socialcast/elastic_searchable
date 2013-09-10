@@ -516,16 +516,34 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal '\-', result
       end
 
-      should "not escape (" do
+      should "escape (" do
         queryString = '('
         result = ElasticSearchable.allow_grouping_escape_query(queryString)
-        assert_equal '(', result
+        assert_equal '\(', result
       end
 
-      should "not escape )" do
+      should "escape )" do
         queryString = ')'
         result = ElasticSearchable.allow_grouping_escape_query(queryString)
-        assert_equal ')', result
+        assert_equal '\)', result
+      end
+
+      should "not escape ()" do
+        queryString = '()'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '()', result
+      end
+
+      should "escape ))((" do
+        queryString = '))(('
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '\)\)\(\(', result
+      end
+
+      should "not escape ()(())()" do
+        queryString = '()(())()'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '()(())()', result
       end
 
       should "escape {" do
@@ -546,10 +564,16 @@ class TestElasticSearchable < Test::Unit::TestCase
         assert_equal '\]', result
       end
 
-      should 'not escape "' do
+      should 'escape "' do
         queryString = '"'
         result = ElasticSearchable.allow_grouping_escape_query(queryString)
-        assert_equal '"', result
+        assert_equal '\"', result
+      end
+
+      should 'not escape ""' do
+        queryString = '""'
+        result = ElasticSearchable.allow_grouping_escape_query(queryString)
+        assert_equal '""', result
       end
 
       should "escape ~" do
