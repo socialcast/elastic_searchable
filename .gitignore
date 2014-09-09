@@ -18,6 +18,8 @@ pkg
 # test files
 test/*.log
 test/*.sqlite3
+spec/**/*.log
+spec/*.sqlite3
 
 # For vim:
 *.swp
