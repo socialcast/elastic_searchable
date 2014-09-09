@@ -111,15 +111,15 @@ module ElasticSearchable
       # see http://www.elasticsearch.org/guide/reference/api/index_.html
       def reindex(lifecycle = nil)
         query = {}
-        query[:percolate] = "*" if _percolate_callbacks.any?
-        response = ElasticSearchable.request :put, self.class.index_type_path(self.id), :query => query, :json_body => self.as_json_for_index
+        response = ElasticSearchable.request :put, self.class.index_type_path(id), :query => query, :json_body => as_json_for_index
 
         self.index_lifecycle = lifecycle ? lifecycle.to_sym : nil
         run_callbacks :index
 
-        self.percolations = response['matches'] || []
-        run_callbacks :percolate if self.percolations.any?
+        self.percolate if _percolate_callbacks.any?
+        run_callbacks :percolate if percolations.any?
       end
+
       # document to index in elasticsearch
       def as_json_for_index
         original_include_root_in_json = self.class.include_root_in_json
@@ -128,10 +128,12 @@ module ElasticSearchable
       ensure
         self.class.include_root_in_json = original_include_root_in_json
       end
+
       def should_index?
         [self.class.elastic_options[:if]].flatten.compact.all? { |m| evaluate_elastic_condition(m) } &&
         ![self.class.elastic_options[:unless]].flatten.compact.any? { |m| evaluate_elastic_condition(m) }
       end
+
       # percolate this object to see what registered searches match
       # can be done on transient/non-persisted objects!
       # can be done automatically when indexing using :percolate => true config option
@@ -140,7 +142,7 @@ module ElasticSearchable
         body = {:doc => self.as_json_for_index}
         body[:query] = percolator_query if percolator_query
         response = ElasticSearchable.request :get, self.class.index_type_path('_percolate'), :json_body => body
-        self.percolations = response['matches'] || []
+        self.percolations = (response['matches'] || []).map { |match| match['_id'] }
         self.percolations
       end
 
